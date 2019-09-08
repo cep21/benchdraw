@@ -33,21 +33,3 @@ bench:
 # The exact version of CI tools should be specified in your go.mod file and referenced inside your tools.go file
 setup_ci:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint
-
-## ---- Delete this part after cloning ---- ####
-# Use like `make setup_repo OWNER=example REPO=myproject`
-setup_repo:
-ifndef OWNER
-	$(error OWNER is undefined)
-endif
-ifndef REPO
-	$(error REPO is undefined)
-endif
-	git grep -l 'cep21/gotemplate' | xargs perl -i -pe"s#cep21/gotemplate#$(OWNER)/$(REPO)#g"
-	git grep -l 'gotemplate' | xargs perl -i -pe"s#gotemplate#$(REPO)#g"
-	mv gotemplate.go $(REPO).go
-	mv gotemplate_example_test.go $(REPO)_example_test.go
-	mv gotemplate_test.go $(REPO)_test.go
-	go test ./...
-	@echo "CircleCI URL: https://circleci.com/add-projects/gh/$(OWNER)"
-	@echo "Codecov URL:  https://codecov.io/gh/$(OWNER)/+"

@@ -1,4 +1,4 @@
-module github.com/cep21/gotemplate
+module github.com/cep21/benchdraw
 
 go 1.12
 

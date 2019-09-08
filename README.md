@@ -1,12 +1,12 @@
-# gotemplate
-[![CircleCI](https://circleci.com/gh/cep21/gotemplate.svg)](https://circleci.com/gh/cep21/gotemplate)
-[![GoDoc](https://godoc.org/github.com/cep21/gotemplate?status.svg)](https://godoc.org/github.com/cep21/gotemplate)
-[![codecov](https://codecov.io/gh/cep21/gotemplate/branch/master/graph/badge.svg)](https://codecov.io/gh/cep21/gotemplate)
+# benchdraw
+[![CircleCI](https://circleci.com/gh/cep21/benchdraw.svg)](https://circleci.com/gh/cep21/benchdraw)
+[![GoDoc](https://godoc.org/github.com/cep21/benchdraw?status.svg)](https://godoc.org/github.com/cep21/benchdraw)
+[![codecov](https://codecov.io/gh/cep21/benchdraw/branch/master/graph/badge.svg)](https://codecov.io/gh/cep21/benchdraw)
 
 A short one sentence description of your code, such as Gotemplate is a minimal template repository for well constructed
 GitHub go libraries.
 
-Explain why (not how) someone would want to use this code.  This should be a bit of a sales pitch.  Use gotemplate to
+Explain why (not how) someone would want to use this code.  This should be a bit of a sales pitch.  Use benchdraw to
 spin up a new Go library on GitHub, without making it a direct fork.  It sets you up with the minimal parts you'll want
 to ensure your code starts and stays at a high quality.  You can read more about template repositories
 [from GitHub](https://github.blog/2019-06-06-generate-new-repositories-with-repository-templates/).
@@ -25,21 +25,21 @@ This setup includes:
 # Usage
 
 Include usage examples.  These can often be links or direct copies from your
-[example test file](./gotemplate_example_test.go).
+[example test file](./benchdraw_example_test.go).
 
 <!--
 ```go
     func ExampleRemoveMe() {
-    	fmt.Println(gotemplate.RemoveMe("hello", "world"))
+    	fmt.Println(benchdraw.RemoveMe("hello", "world"))
     }
 ```
 -->
-To use gotemplate:
-1. Visit the generation URL for gotemplate at https://github.com/cep21/gotemplate/generate and create your repository.
+To use benchdraw:
+1. Visit the generation URL for benchdraw at https://github.com/cep21/benchdraw/generate and create your repository.
 2. Sign in with GitHub for [CircleCI](https://circleci.com) and [codecov](https://codecov.io).  Afterwards, enable each
 for your repository.  Direct links to enable look something like this for [codecov](https://codecov.io/gh/cep21/+) and
 [CircleCI](https://circleci.com/add-projects/gh/cep21), but for your user name.
-3. Rename cep21/gotemplate to your repository.  There is a makefile helper this, which expects an OWNER
+3. Rename cep21/benchdraw to your repository.  There is a makefile helper this, which expects an OWNER
  and REPO parameter.  For example, if you were to setup the github repository github.com/example/athing you would run
  `make setup_repo OWNER=example REPO=athing`.
 4. Take out the parts of the README that don't make sense.  Keep the sections you want.
@@ -97,7 +97,7 @@ them as you want.
 
 ## Testable examples
 
-I really like [testable examples](./gotemplate_example_test.go) as code documentation that verifies itself as correct (unlike actual documentation blocks
+I really like [testable examples](./benchdraw_example_test.go) as code documentation that verifies itself as correct (unlike actual documentation blocks
 which are never compiled).  Testable examples also integrate well with godoc and most IDE help dialogs.
 
 ## doc.go
@@ -141,7 +141,7 @@ Tell people how they can contribute.  Start with something simple and create a `
 need it.
 
 Contributions welcome!  Submit a pull request on github and make sure your code passes `make lint test`.  For
-large changes, I strongly recommend [creating an issue](https://github.com/cep21/gotemplate/issues) on GitHub first to
+large changes, I strongly recommend [creating an issue](https://github.com/cep21/benchdraw/issues) on GitHub first to
 confirm your change will be accepted before writing a lot of code.  GitHub issues are also recommended, at your discretion,
 for smaller changes or questions.
 
