@@ -1,0 +1,50 @@
+version: 2.1
+jobs:
+  build_1_12:
+    docker:
+      # Find these on https://hub.docker.com/r/circleci/golang/
+      - image: circleci/golang:1.12.9
+    steps:
+      - checkout
+      # This step caches your modules directory.  Find out more about how to cache modules from
+      # https://circleci.com/blog/go-v1.11-modules-and-circleci/
+      - restore_cache:
+          keys:
+            # Keys should be of a format (thing)-(cache_version)-(hash)
+            # This is thing="go modules" cache_version="1" and hash "checksum of go.sum file"
+            - go-mod-v1-sum-{{ checksum "go.sum" }}
+            - go-mod-v1-sum-
+      - run: go mod download
+      - run: go mod verify
+      - run: make build test
+      - run: make setup_ci lint
+      - run: make codecov_coverage
+      - save_cache:
+          key: go-mod-v1-sum-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+  # Comments and rational for this build block are the same as the above
+  build_1_11:
+    docker:
+      - image: circleci/golang:1.11.13
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v1-sum-{{ checksum "go.sum" }}
+            - go-mod-v1-sum-
+      - run: go mod download
+      - run: go mod verify
+      - run: make build test
+      # Notice how we don't run linter on 1.11.  Some linters are picky about the format they expect for go 1.12 vs
+      # go1.11.  So we lint against the latest go.
+      - save_cache:
+          key: go-mod-v1-sum-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build_1_11
+      - build_1_12
