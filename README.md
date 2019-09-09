@@ -22,6 +22,9 @@ Here we filter the benchmarks to just the ones named "BenchmarkTdigest_Add" and 
 dimension.  The default Y dimension is ns/op.
 
 ```
+# Sample line from simpleres.txt
+# BenchmarkTdigest_Add/source=linear/digest=caio-8 	 1299153	       932 ns/op	      33 B/op	       0 allocs/op
+#
 ./benchdraw --filter="BenchmarkTdigest_Add" --x=source < ./testdata/simpleres.txt > ./examples/out0.svg
 ```
 ![firts example](./examples/piped_output.svg)
@@ -38,9 +41,13 @@ You can run the same simple example another way, passing directly the input and 
 
 ## Plot another metric
 
-You can set the "y" value to plot.  Here I set it to allocs/op
+You can set the "y" value to plot.  Here I set it to allocs/op.  Notice how the table at the top right "digits/twain"
+bleeds into the bar graph.  For this case, it may be better to use a line output (see below).
 
 ```
+# Sample line from decodeexample.txt
+# BenchmarkDecode/text=digits/level=best/size=1e5-8    	      10	   1185527 ns/op	  84.35 MB/s	   41508 B/op	      13 allocs/op
+#
 ./benchdraw --filter="BenchmarkDecode/level=best" --x=size --y="allocs/op" --input=./testdata/decodeexample.txt --output=./examples/sample_allocs.svg
 ```
 
@@ -59,6 +66,8 @@ Bar graphs are the default, but you can also output line charts.  This can help 
 Here is another example line output
 
 ```
+# Sample line from benchresult.txt
+# BenchmarkCorrectness/size=1000000/source=rand/digest=caio/quant=0.000000-8                  	1000000000	         0.0649 ns/op	       100 %correct	       0 B/op	       0 allocs/op
     ./benchdraw --filter="BenchmarkCorrectness/size=1000000/quant=0.000000" --x=source --plot=line --y=%correct --v=4 --input=./testdata/benchresult.txt --output=./examples/sample_line3.svg
 ```
 ![line output](./examples/sample_line3.svg)
@@ -114,7 +123,7 @@ Notice how each benchmark run contains the tag "commit".  We can use commit as o
 
 ![line output](./examples/comits.svg)
 
-# Parameter explainations
+# Parameter explanations
 
 ## x (required)
 A x parameter should be a tag or dimension of your benchmark and will get distributed on the X axis of your image.

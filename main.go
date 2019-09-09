@@ -228,7 +228,7 @@ func (a *Application) run() error {
 		// For this line in our graph, compute the X values
 		allVals := valuesByX(g, pcfg.x, pcfg.y, uniqueKeys)
 		pl := plotLine{
-			name:   g.nominalLineName(allSingleKey(grouped), a.config.filter),
+			name:   g.nominalLineName(allSingleKey(grouped)),
 			values: allVals,
 		}
 		a.log.Log(3, "nominal=%v plot=%v", pl.name, pl)
@@ -340,7 +340,7 @@ func (b *benchmarkGroup) String() string {
 	return fmt.Sprintf("vals=%v len_results=%d", b.values, len(b.results))
 }
 
-func (b *benchmarkGroup) nominalLineName(singleKey bool, filterName string) string {
+func (b *benchmarkGroup) nominalLineName(singleKey bool) string {
 	if singleKey && len(b.values.order) > 0 {
 		return b.values.values[b.values.order[0]]
 	}
@@ -496,9 +496,8 @@ func (a *Application) addLine(line plotLine, offset int) (*plotter.Line, error) 
 func (a *Application) makePlotter(cfg *parsedConfig, lines []plotLine, line plotLine, index int) (plot.Plotter, error) {
 	if cfg.plot == plotTypeBar {
 		return a.addBar(line, index, len(lines))
-	} else {
-		return a.addLine(line, index)
 	}
+	return a.addLine(line, index)
 }
 
 func (a *Application) createPlot(cfg *parsedConfig, lines []plotLine, nominalX []string) (*plot.Plot, error) {
