@@ -45,13 +45,25 @@ type config struct {
 	y      string
 	input  string
 	output string
+	format string
+}
+
+func filterEmpty(s []string) []string {
+	ret := make([]string, 0, len(s))
+	for _, i := range s {
+		if len(i) > 0 {
+			ret = append(ret, i)
+		}
+	}
+	return ret
 }
 
 func (c config) parse() (*parsedConfig, error) {
 	ret := parsedConfig{
 		title:   c.title,
 		filters: toFilterPairs(c.filter),
-		group:   strings.Split(c.group, "/"),
+		group:   filterEmpty(strings.Split(c.group, "/")),
+		imageFormat: c.format,
 		y:       c.y,
 		x:       c.x,
 	}
@@ -64,7 +76,7 @@ func (c config) parse() (*parsedConfig, error) {
 	}
 	ret.plot = pt
 	if c.input == "-" || c.input == "" {
-		ret.input = os.Stdout
+		ret.input = os.Stdin
 	} else {
 		f, err := os.Open(c.input)
 		if err != nil {
@@ -90,6 +102,9 @@ func toFilterPairs(s string) []filterPair {
 	parts := strings.Split(s, "/")
 	ret := make([]filterPair, 0, len(parts))
 	for _, p := range parts {
+		if len(p) == 0 {
+			continue
+		}
 		kv := strings.SplitN(p, "=", 2)
 		if len(kv) == 1 {
 			ret = append(ret, filterPair{
@@ -138,7 +153,8 @@ type parsedConfig struct {
 	input   io.Reader
 	output  io.Writer
 
-	onClose []func() error
+	onClose     []func() error
+	imageFormat string
 }
 
 func (p *parsedConfig) String() string {
@@ -202,7 +218,7 @@ func (a *Application) run() error {
 	}
 	// Each group is a line in our graph
 	a.log.Log(3, "groupSet: %v", groupSet)
-	grouped := groupBenchmarks(filteredResults, groupSet)
+	grouped := groupBenchmarks(filteredResults, groupSet, pcfg.x)
 	a.log.Log(3, "grouped: %v", grouped)
 	normalize(grouped)
 	a.log.Log(3, "normalize: %v", grouped)
@@ -212,7 +228,7 @@ func (a *Application) run() error {
 		// For this line in our graph, compute the X values
 		allVals := valuesByX(g, pcfg.x, pcfg.y, uniqueKeys)
 		pl := plotLine{
-			name:   g.nominalLineName(len(groupSet.items) == 1),
+			name:   g.nominalLineName(allSingleKey(grouped), a.config.filter),
 			values: allVals,
 		}
 		a.log.Log(3, "nominal=%v plot=%v", pl.name, pl)
@@ -229,11 +245,28 @@ func (a *Application) run() error {
 	return nil
 }
 
+func allSingleKey(groups []*benchmarkGroup) bool {
+	if len(groups) <= 1 {
+		return true
+	}
+	if len(groups[0].values.order) > 1 {
+		return false
+	}
+	expectedKey := groups[0].values.order[0]
+	for i :=1;i<len(groups);i++ {
+		if len(groups[i].values.order) > 1 {
+			return false
+		}
+		if groups[0].values.order[0] != expectedKey {
+			return false
+		}
+	}
+	return true
+}
+
 func savePlot(pcfg *parsedConfig, p *plot.Plot, lines []plotLine, set stringSet) error {
-	x := float64(30*(len(lines))*(len(set.items)) + 90)
-	fmt.Println("X is ", x, len(lines), len(set.items))
-	wt, err := p.WriterTo(vg.Points(x), vg.Points(x/2), "svg")
-	//wt, err := p.WriterTo(vg.Points(600), vg.Points(300), "png")
+	x := float64(30*(len(lines))*(len(set.items)) + 290)
+	wt, err := p.WriterTo(vg.Points(x), vg.Points(x/2), pcfg.imageFormat)
 	if err != nil {
 		return errors.Wrap(err, "unable to make plot writer")
 	}
@@ -249,15 +282,16 @@ type plotLine struct {
 }
 
 func (a *Application) setupFlags() error {
-	a.fs.StringVar(&a.config.plot, "plot", "bar", "Which picture type to plot")
-	a.fs.StringVar(&a.config.filter, "filter", "", "Filter which benchmarks to graph")
-	a.fs.StringVar(&a.config.title, "title", "", "A title for your graph")
+	a.fs.StringVar(&a.config.plot, "plot", "bar", "Which picture type to plot.  Valid values [bar,box]")
+	a.fs.StringVar(&a.config.filter, "filter", "", "Filter which benchmarks to graph.  See README for filter syntax")
+	a.fs.StringVar(&a.config.title, "title", "", "A title for your graph.  If empty, will use filter")
 	a.fs.StringVar(&a.config.group, "group", "", "Pick benchmarks tags to group together")
-	a.fs.StringVar(&a.config.x, "x", "", "Pick group for the X axis")
-	a.fs.StringVar(&a.config.y, "y", "", "Pick unit for the Y axis")
+	a.fs.StringVar(&a.config.x, "x", "", "Pick unit for the X axis")
+	a.fs.StringVar(&a.config.y, "y", "ns/op", "Pick unit for the Y axis")
 	a.fs.StringVar(&a.config.input, "input", "-", "Input file to read from.  - means stdin")
-	a.fs.StringVar(&a.config.output, "output", "-", "Output file to write to.  - meand stdout")
-	a.fs.IntVar(&a.log.verbosity, "v", 3, "Higher the value, the more verbose the output")
+	a.fs.StringVar(&a.config.output, "output", "-", "Output file to write to.  - means stdout")
+	a.fs.StringVar(&a.config.format, "format", "svg", "Which image format to render.  Must be supported by gonum/plot.  You probably want the default.")
+	a.fs.IntVar(&a.log.verbosity, "v", 0, "Higher the value, the more verbose the output.  Max value is 4")
 	if err := a.fs.Parse(a.parameters); err != nil {
 		return errors.Wrap(err, "unable to parse cli parameters")
 	}
@@ -276,28 +310,22 @@ func (a *Application) readBenchmarks(cfg *parsedConfig) (*benchparse.Run, error)
 func filterBenchmarks(in []benchparse.BenchmarkResult, filters []filterPair, unit string) []benchparse.BenchmarkResult {
 	ret := make([]benchparse.BenchmarkResult, 0, len(in))
 	for _, b := range in {
-		nameKeys := b.NameAsKeyValue()
-		configKeys := b.Configuration
 		// Benchmark must have a valid unit
 		if _, exists := b.ValueByUnit(unit); !exists {
 			continue
 		}
+		keys := b.AllKeyValuePairs()
+		okToAdd := true
 		// each filter must pass
 		for _, f := range filters {
-			nameVal, existsInName := nameKeys.Contents[f.key]
-			configVal, existsInConfig := configKeys.Contents[f.key]
-			if existsInName {
-				if f.value == "" || f.value == nameVal {
-					ret = append(ret, b)
-					continue
-				}
+			val, exists := keys.Contents[f.key]
+			if !exists || (f.value != "" && f.value != val) {
+				okToAdd = false
+				break
 			}
-			if existsInConfig {
-				if f.value == "" || f.value == configVal {
-					ret = append(ret, b)
-					continue
-				}
-			}
+		}
+		if okToAdd {
+			ret = append(ret, b)
 		}
 	}
 	return ret
@@ -312,24 +340,23 @@ func (b *benchmarkGroup) String() string {
 	return fmt.Sprintf("vals=%v len_results=%d", b.values, len(b.results))
 }
 
-func (b *benchmarkGroup) nominalLineName(allSingleKey bool) string {
-	if allSingleKey {
+func (b *benchmarkGroup) nominalLineName(singleKey bool, filterName string) string {
+	if singleKey && len(b.values.order) > 0 {
 		return b.values.values[b.values.order[0]]
 	}
 	var ret []string
 	for _, c := range b.values.order {
 		ret = append(ret, c+"="+b.values.values[c])
 	}
+	if len(ret) == 0 {
+		return ""
+	}
 	return "[" + strings.Join(ret, ",") + "]"
 }
 
 func makeKeys(r benchparse.BenchmarkResult) hashableMap {
-	nameKeys := r.NameAsKeyValue()
-	configKeys := r.Configuration
+	nameKeys := r.AllKeyValuePairs()
 	var ret hashableMap
-	for _, k := range configKeys.Order {
-		ret.insert(k, configKeys.Contents[k])
-	}
 	for _, k := range nameKeys.Order {
 		ret.insert(k, nameKeys.Contents[k])
 	}
@@ -348,15 +375,24 @@ func uniqueValuesForKey(in []benchparse.BenchmarkResult, key string) stringSet {
 }
 
 // each returned benchmarkGroup will aggregate results by unique groups key/value pairs
-func groupBenchmarks(in []benchparse.BenchmarkResult, groups stringSet) []*benchmarkGroup {
+func groupBenchmarks(in []benchparse.BenchmarkResult, groups stringSet, unit string) []*benchmarkGroup {
 	ret := make([]*benchmarkGroup, 0, len(in))
 	setMap := make(map[string]*benchmarkGroup)
 	for _, b := range in {
 		keysMap := makeKeys(b)
 		var hm hashableMap
-		for _, ck := range groups.order {
-			if configValue, exists := keysMap.values[ck]; exists {
-				hm.insert(ck, configValue)
+		if len(groups.order) == 0 {
+			// Group by everything except unit
+			for _, k := range keysMap.order {
+				if k != unit {
+					hm.insert(k, keysMap.values[k])
+				}
+			}
+		} else {
+			for _, ck := range groups.order {
+				if configValue, exists := keysMap.values[ck]; exists {
+					hm.insert(ck, configValue)
+				}
 			}
 		}
 		mapHash := hm.Hash()
@@ -401,6 +437,9 @@ func normalize(in []*benchmarkGroup) {
 }
 
 func meanAggregation(vals []float64) float64 {
+	if len(vals) == 0 {
+		return 0
+	}
 	sum := 0.0
 	for _, v := range vals {
 		sum += v

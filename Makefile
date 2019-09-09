@@ -34,10 +34,28 @@ bench:
 setup_ci:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
-draw_examples: build
-	./benchdraw --filter="BenchmarkTdigest_Add" --x=source --group="digest" --y=ns/op --v=4 --input=./testdata/simpleres.txt --output=./out.svg
-	./benchdraw --filter="BenchmarkCorrectness/size=1000000/quant=0.999000-8" --x=source --group="digest" --y=%diff --v=4 --input=./testdata/benchresult.txt --output=./out2.svg
-	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --x=quant --group="source" --y=%diff --v=4 --input=./testdata/benchresult.txt --output=./out3.svg
-	./benchdraw --filter="BenchmarkTdigest_Add" --x=source --group="digest" --y=ns/op --v=4 --input=./testdata/benchresult.txt --output=./out4.svg
-	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --x=quant --group="source" --y=ns/op --v=4 --input=./testdata/benchresult.txt --output=./out5.svg
-	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --plot=line --x=quant --group="source" --y=ns/op --v=4 --input=./testdata/benchresult.txt --output=./out6.svg
+clean:
+	rm ./examples/*.svg
+
+draw_examples: build clean
+	./benchdraw --filter="BenchmarkTdigest_Add" --x=source < ./testdata/simpleres.txt > ./examples/piped_output.svg
+	./benchdraw --filter="BenchmarkTdigest_Add" --x=source --group="digest" --v=4 --input=./testdata/simpleres.txt --output=./examples/set_filename.svg
+	./benchdraw --filter="BenchmarkDecode/level=best" --x=size --plot=line --v=4 --y="allocs/op" --input=./testdata/decodeexample.txt --output=./examples/sample_line.svg
+	./benchdraw --filter="BenchmarkDecode/level=best" --x=size --y="allocs/op" --input=./testdata/decodeexample.txt --output=./examples/sample_allocs.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/quant=0.999000" --x=source --plot=line --y=%correct --v=4 --input=./testdata/benchresult.txt --output=./examples/sample_line2.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/quant=0.000000" --x=source --plot=line --y=%correct --v=4 --input=./testdata/benchresult.txt --output=./examples/sample_line3.svg
+
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --x=quant --y=%correct --v=4 --input=./testdata/benchresult.txt --output=./examples/caoi_correct.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=segmentio" --x=quant --y=%correct --v=4 --input=./testdata/benchresult.txt --output=./examples/segmentio_correct.svg
+
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000" --x=quant --y=%correct --v=4 --input=./testdata/benchresult.txt --output=./examples/too_many.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000" --x=quant --y=%correct --group="digest" --v=4 --input=./testdata/benchresult.txt --output=./examples/grouped.svg
+
+	./benchdraw --filter="BenchmarkTdigest_Add" --x=source --group="digest" --v=4 --y="allocs/op" --input=./testdata/benchresult.txt --output=./examples/out5.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --plot=line --x=quant --group="source" --y=ns/op --v=4 --input=./testdata/benchresult.txt --output=./examples/out6.svg
+	./benchdraw --filter="BenchmarkDecode/size=1e6" --x=level --v=4 --input=./testdata/decodeexample.txt --output=./examples/out7.svg
+	./benchdraw --filter="BenchmarkDecode/size=1e6" --x=level --group="text" --v=4 --y="allocs/op" --input=./testdata/decodeexample.txt --output=./examples/out8.svg
+
+	./benchdraw --filter="BenchmarkDecode/size=1e6/text=twain" --x=level --plot=line --v=4 --y="allocs/op" --input=./testdata/decodeexample.txt --output=./examples/out10.svg
+	./benchdraw --filter="BenchmarkDecode/text=twain" --x=level --plot=line --v=4 --y="allocs/op" --input=./testdata/decodeexample.txt --output=./examples/out11.svg
+	./benchdraw --filter="BenchmarkDecode" --x=commit --plot=line --v=4 --input=./testdata/encodeovertime.txt --output=./examples/comits.svg

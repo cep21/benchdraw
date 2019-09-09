@@ -1,0 +1,10 @@
+commit: 7cd9055
+BenchmarkDecode/text=digits/level=speed/size=1e4-8   	     100	    154125 ns/op	  64.88 MB/s	   40418 B/op	       7 allocs/op
+commit: 3ab3ace
+BenchmarkDecode/text=digits/level=speed/size=1e4-8   	     100	    154125 ns/op	  64.88 MB/s	   40418 B/op	       7 allocs/op
+commit: 92ae1af
+BenchmarkDecode/text=digits/level=speed/size=1e4-8   	     100	    167185 ns/op	  64.88 MB/s	   40418 B/op	       7 allocs/op
+commit: 920af9b
+BenchmarkDecode/text=digits/level=speed/size=1e4-8   	     100	    168129 ns/op	  64.88 MB/s	   40418 B/op	       7 allocs/op
+commit: a1b93a0
+BenchmarkDecode/text=digits/level=speed/size=1e4-8   	     100	    140125 ns/op	  64.88 MB/s	   40418 B/op	       7 allocs/op
