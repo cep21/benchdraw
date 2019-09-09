@@ -28,5 +28,4 @@ workflows:
   version: 2
   build:
     jobs:
-      - build_1_11
       - build_1_12
