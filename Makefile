@@ -33,3 +33,11 @@ bench:
 # The exact version of CI tools should be specified in your go.mod file and referenced inside your tools.go file
 setup_ci:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+
+draw_examples: build
+	./benchdraw --filter="BenchmarkTdigest_Add" --x=source --group="digest" --y=ns/op --v=4 --input=./testdata/simpleres.txt --output=./out.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/quant=0.999000-8" --x=source --group="digest" --y=%diff --v=4 --input=./testdata/benchresult.txt --output=./out2.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --x=quant --group="source" --y=%diff --v=4 --input=./testdata/benchresult.txt --output=./out3.svg
+	./benchdraw --filter="BenchmarkTdigest_Add" --x=source --group="digest" --y=ns/op --v=4 --input=./testdata/benchresult.txt --output=./out4.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --x=quant --group="source" --y=ns/op --v=4 --input=./testdata/benchresult.txt --output=./out5.svg
+	./benchdraw --filter="BenchmarkCorrectness/size=1000000/digest=caio" --plot=line --x=quant --group="source" --y=ns/op --v=4 --input=./testdata/benchresult.txt --output=./out6.svg

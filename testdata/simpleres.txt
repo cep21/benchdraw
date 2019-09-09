@@ -1,0 +1,10 @@
+BenchmarkTdigest_Add/source=linear/digest=caio-8 	 1299153	       932 ns/op	      33 B/op	       0 allocs/op
+BenchmarkTdigest_Add/source=linear/digest=segmentio-8         	 1000000	      5674 ns/op	       8 B/op	       1 allocs/op
+BenchmarkTdigest_Add/source=rand/digest=caio-8                	 3973735	       327 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTdigest_Add/source=rand/digest=segmentio-8           	 2212902	       827 ns/op	       8 B/op	       1 allocs/op
+BenchmarkTdigest_Add/source=alternating/digest=caio-8         	 1000000	      1772 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTdigest_Add/source=alternating/digest=segmentio-8    	 1000000	      3053 ns/op	    1550 B/op	      10 allocs/op
+BenchmarkTdigest_Add/source=normal/digest=caio-8              	 3948990	       320 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTdigest_Add/source=normal/digest=segmentio-8         	 2184526	       865 ns/op	       8 B/op	       1 allocs/op
+BenchmarkTdigest_Add/source=tailspike/digest=caio-8           	 3871680	       323 ns/op	       0 B/op	       0 allocs/op
+BenchmarkTdigest_Add/source=tailspike/digest=segmentio-8      	 2069173	       813 ns/op	       8 B/op	       1 allocs/op
