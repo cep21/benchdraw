@@ -18,26 +18,8 @@ jobs:
       - run: go mod verify
       - run: make build test
       - run: make setup_ci lint
+      - run: make draw_examples
       - run: make codecov_coverage
-      - save_cache:
-          key: go-mod-v1-sum-{{ checksum "go.sum" }}
-          paths:
-            - "/go/pkg/mod"
-  # Comments and rational for this build block are the same as the above
-  build_1_11:
-    docker:
-      - image: circleci/golang:1.11.13
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - go-mod-v1-sum-{{ checksum "go.sum" }}
-            - go-mod-v1-sum-
-      - run: go mod download
-      - run: go mod verify
-      - run: make build test
-      # Notice how we don't run linter on 1.11.  Some linters are picky about the format they expect for go 1.12 vs
-      # go1.11.  So we lint against the latest go.
       - save_cache:
           key: go-mod-v1-sum-{{ checksum "go.sum" }}
           paths:
