@@ -11,7 +11,18 @@ First generate some benchmark data by running your benchmarks and sending them t
 ```
     go test -v -benchmem -run=^$$ -bench=. ./... > benchmark.txt
 ```
-Then, run `benchdraw` against benchmark.txt to create pictures.
+Then, run `benchdraw` against benchmark.txt to create pictures.  `benchdraw` expects that you name your benchmarks as
+described by https://github.com/golang/proposal/blob/master/design/14313-benchmark-format.md
+
+Importantly, that you use key=value format to group your sub benchmarks and that `/` divides the key space.  For example
+```
+BenchmarkDecode/text=digits/level=speed/size=1e4-8   	     100	    154125 ns/op	  64.88 MB/s	   40418 B/op	       7 allocs/op
+BenchmarkDecode/text=digits/level=speed/size=1e5-8   	      10	   1367632 ns/op	  73.12 MB/s	   41356 B/op	      14 allocs/op
+BenchmarkDecode/text=digits/level=speed/size=1e6-8   	       1	  13879794 ns/op	  72.05 MB/s	   52056 B/op	      94 allocs/op
+BenchmarkDecode/text=digits/level=default/size=1e4-8 	     100	    147551 ns/op	  67.77 MB/s	   40418 B/op	       8 allocs/op
+BenchmarkDecode/text=digits/level=default/size=1e5-8 	      10	   1197672 ns/op	  83.50 MB/s	   41508 B/op	      13 allocs/op
+
+```
 
 There are example pictures inside [examples](./examples) and example benchmark results inside [testdata](./testdata).
 Run `make draw_examples` to see all the examples drawn.
