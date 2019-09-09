@@ -7,6 +7,13 @@ benchdraw allows you to make easy to read picture plots from data in Go's benchm
 
 # Usage
 
+First generate some benchmark data by running your benchmarks and sending them to a file.
+```
+    go test -v -benchmem -run=^$$ -bench=. ./... > benchmark.txt
+```
+Then, run `benchdraw` against benchmark.txt to create pictures.
+
+There are example pictures inside [examples](./examples) and example benchmark results inside [testdata](./testdata).
 Run `make draw_examples` to see all the examples drawn.
 
 ## Simple example
