@@ -60,12 +60,12 @@ func filterEmpty(s []string) []string {
 
 func (c config) parse() (*parsedConfig, error) {
 	ret := parsedConfig{
-		title:   c.title,
-		filters: toFilterPairs(c.filter),
-		group:   filterEmpty(strings.Split(c.group, "/")),
+		title:       c.title,
+		filters:     toFilterPairs(c.filter),
+		group:       filterEmpty(strings.Split(c.group, "/")),
 		imageFormat: c.format,
-		y:       c.y,
-		x:       c.x,
+		y:           c.y,
+		x:           c.x,
 	}
 	if ret.title == "" {
 		ret.title = c.filter
@@ -223,7 +223,7 @@ func (a *Application) run() error {
 	normalize(grouped)
 	a.log.Log(3, "normalize: %v", grouped)
 
-	var plotLines []plotLine
+	plotLines := make([]plotLine, 0, len(grouped))
 	for _, g := range grouped {
 		// For this line in our graph, compute the X values
 		allVals := valuesByX(g, pcfg.x, pcfg.y, uniqueKeys)
@@ -233,7 +233,7 @@ func (a *Application) run() error {
 		}
 		a.log.Log(3, "nominal=%v plot=%v", pl.name, pl)
 		plotLines = append(plotLines, pl)
-		a.log.Log(3, "plot line: %s", pl)
+		a.log.Log(3, "plot line: %v", pl)
 	}
 	p, err := a.createPlot(pcfg, plotLines, uniqueKeys.order)
 	if err != nil {
@@ -253,7 +253,7 @@ func allSingleKey(groups []*benchmarkGroup) bool {
 		return false
 	}
 	expectedKey := groups[0].values.order[0]
-	for i :=1;i<len(groups);i++ {
+	for i := 1; i < len(groups); i++ {
 		if len(groups[i].values.order) > 1 {
 			return false
 		}
@@ -344,7 +344,7 @@ func (b *benchmarkGroup) nominalLineName(singleKey bool, filterName string) stri
 	if singleKey && len(b.values.order) > 0 {
 		return b.values.values[b.values.order[0]]
 	}
-	var ret []string
+	ret := make([]string, 0, len(b.values.order))
 	for _, c := range b.values.order {
 		ret = append(ret, c+"="+b.values.values[c])
 	}
@@ -448,9 +448,9 @@ func meanAggregation(vals []float64) float64 {
 }
 
 func valuesByX(in *benchmarkGroup, xDim string, unit string, allValues stringSet) [][]float64 {
-	var ret [][]float64
+	ret := make([][]float64, 0, len(allValues.order))
 	for _, v := range allValues.order {
-		var allVals []float64
+		allVals := make([]float64, 0, len(in.results))
 		for _, b := range in.results {
 			benchmarkKeys := makeKeys(b)
 			if benchmarkKeys.values[xDim] != v {
