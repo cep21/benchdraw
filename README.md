@@ -5,6 +5,10 @@
 
 benchdraw allows you to make easy to read picture plots from data in Go's benchmark format.
 
+# Install
+
+Install with go get: `go get github.com/cep21/benchdraw`
+
 # Usage
 
 First generate some benchmark data by running your benchmarks and sending them to a file.
