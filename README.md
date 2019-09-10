@@ -3,7 +3,10 @@
 [![GoDoc](https://godoc.org/github.com/cep21/benchdraw?status.svg)](https://godoc.org/github.com/cep21/benchdraw)
 [![codecov](https://codecov.io/gh/cep21/benchdraw/branch/master/graph/badge.svg)](https://codecov.io/gh/cep21/benchdraw)
 
-benchdraw allows you to make easy to read picture plots from data in Go's benchmark format.
+benchdraw allows you to make easy to read picture plots from data in Go's benchmark format, implemented in pure Go.
+
+Benchdraw does not try to be as configurable or good looking as gnuplot.  It only intends to produce good enough
+pictures for the most common cases that users can generate with minimal effort.
 
 # Install
 
