@@ -18,6 +18,7 @@ import (
 )
 
 type Application struct {
+	benchreader internal.BenchmarkReader
 	fs         flag.FlagSet
 	config     config
 	parameters []string
@@ -299,12 +300,7 @@ func (a *Application) setupFlags() error {
 }
 
 func (a *Application) readBenchmarks(cfg *parsedConfig) (*benchparse.Run, error) {
-	d := benchparse.Decoder{}
-	run, err := d.Decode(cfg.input)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to decode benchmark format")
-	}
-	return run, nil
+	return a.benchreader.ReadBenchmarks(cfg.input)
 }
 
 func filterBenchmarks(in []benchparse.BenchmarkResult, filters []filterPair, unit string) []benchparse.BenchmarkResult {
