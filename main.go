@@ -19,6 +19,7 @@ import (
 
 type Application struct {
 	benchreader internal.BenchmarkReader
+	filter internal.Filter
 	fs         flag.FlagSet
 	config     config
 	parameters []string
@@ -99,22 +100,22 @@ func (c config) parse() (*parsedConfig, error) {
 	return &ret, nil
 }
 
-func toFilterPairs(s string) []filterPair {
+func toFilterPairs(s string) []internal.FilterPair {
 	parts := strings.Split(s, "/")
-	ret := make([]filterPair, 0, len(parts))
+	ret := make([]internal.FilterPair, 0, len(parts))
 	for _, p := range parts {
 		if len(p) == 0 {
 			continue
 		}
 		kv := strings.SplitN(p, "=", 2)
 		if len(kv) == 1 {
-			ret = append(ret, filterPair{
-				key: p,
+			ret = append(ret, internal.FilterPair{
+				Key: p,
 			})
 		} else {
-			ret = append(ret, filterPair{
-				key:   kv[0],
-				value: kv[1],
+			ret = append(ret, internal.FilterPair{
+				Key:   kv[0],
+				Value: kv[1],
 			})
 		}
 	}
@@ -139,14 +140,9 @@ const (
 	plotTypeLine
 )
 
-type filterPair struct {
-	key   string
-	value string
-}
-
 type parsedConfig struct {
 	title   string
-	filters []filterPair
+	filters []internal.FilterPair
 	group   []string
 	plot    plotType
 	x       string
@@ -209,7 +205,7 @@ func (a *Application) run() error {
 	if err != nil {
 		return errors.Wrap(err, "unable to read benchmark data")
 	}
-	filteredResults := filterBenchmarks(run.Results, pcfg.filters, pcfg.y)
+	filteredResults := a.filterBenchmarks(run.Results, pcfg.filters, pcfg.y)
 	a.log.Log(3, "filtered results: %s", filteredResults)
 	uniqueKeys := uniqueValuesForKey(filteredResults, pcfg.x)
 	a.log.Log(3, "uniqueKeys: %s", uniqueKeys)
@@ -292,7 +288,7 @@ func (a *Application) setupFlags() error {
 	a.fs.StringVar(&a.config.input, "input", "-", "Input file to read from.  - means stdin")
 	a.fs.StringVar(&a.config.output, "output", "-", "Output file to write to.  - means stdout")
 	a.fs.StringVar(&a.config.format, "format", "svg", "Which image format to render.  Must be supported by gonum/plot.  You probably want the default.")
-	a.fs.IntVar(&a.log.verbosity, "v", 0, "Higher the value, the more verbose the output.  Max value is 4")
+	a.fs.IntVar(&a.log.verbosity, "v", 0, "Higher the Value, the more verbose the output.  Max Value is 4")
 	if err := a.fs.Parse(a.parameters); err != nil {
 		return errors.Wrap(err, "unable to parse cli parameters")
 	}
@@ -303,28 +299,8 @@ func (a *Application) readBenchmarks(cfg *parsedConfig) (*benchparse.Run, error)
 	return a.benchreader.ReadBenchmarks(cfg.input)
 }
 
-func filterBenchmarks(in []benchparse.BenchmarkResult, filters []filterPair, unit string) []benchparse.BenchmarkResult {
-	ret := make([]benchparse.BenchmarkResult, 0, len(in))
-	for _, b := range in {
-		// Benchmark must have a valid unit
-		if _, exists := b.ValueByUnit(unit); !exists {
-			continue
-		}
-		keys := b.AllKeyValuePairs()
-		okToAdd := true
-		// each filter must pass
-		for _, f := range filters {
-			val, exists := keys.Contents[f.key]
-			if !exists || (f.value != "" && f.value != val) {
-				okToAdd = false
-				break
-			}
-		}
-		if okToAdd {
-			ret = append(ret, b)
-		}
-	}
-	return ret
+func (a *Application) filterBenchmarks(in []benchparse.BenchmarkResult, filters []internal.FilterPair, unit string) []benchparse.BenchmarkResult {
+	return a.filter.FilterBenchmarks(in, filters, unit)
 }
 
 type benchmarkGroup struct {
@@ -370,7 +346,7 @@ func uniqueValuesForKey(in []benchparse.BenchmarkResult, key string) internal.St
 	return ret
 }
 
-// each returned benchmarkGroup will aggregate results by unique groups key/value pairs
+// each returned benchmarkGroup will aggregate results by unique groups Key/Value pairs
 func groupBenchmarks(in []benchparse.BenchmarkResult, groups internal.StringSet, unit string) []*benchmarkGroup {
 	ret := make([]*benchmarkGroup, 0, len(in))
 	setMap := make(map[string]*benchmarkGroup)
@@ -406,7 +382,7 @@ func groupBenchmarks(in []benchparse.BenchmarkResult, groups internal.StringSet,
 	return ret
 }
 
-// Normalize modifies in to Remove key/value pairs that exist in every group
+// Normalize modifies in to Remove Key/Value pairs that exist in every group
 func normalize(in []*benchmarkGroup) {
 	if len(in) == 0 {
 		return
