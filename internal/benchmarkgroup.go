@@ -10,6 +10,8 @@ type BenchmarkGroup struct {
 	Results BenchmarkList
 }
 
+type BenchmarkGroupList []*BenchmarkGroup
+
 func (b *BenchmarkGroup) String() string {
 	return fmt.Sprintf("vals=%v len_results=%d", b.Values, len(b.Results))
 }

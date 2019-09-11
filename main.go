@@ -242,7 +242,7 @@ func (a *Application) run() error {
 	return nil
 }
 
-func allSingleKey(groups BenchmarkGroupList) bool {
+func allSingleKey(groups internal.BenchmarkGroupList) bool {
 	if len(groups) <= 1 {
 		return true
 	}
@@ -311,11 +311,9 @@ func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSe
 	return in.UniqueValuesForKey(key)
 }
 
-type BenchmarkGroupList []*internal.BenchmarkGroup
-
 // each returned internal.BenchmarkGroup will aggregate Results by unique groups Key/Value pairs
-func groupBenchmarks(in internal.BenchmarkList, groups internal.StringSet, unit string) BenchmarkGroupList {
-	ret := make(BenchmarkGroupList, 0, len(in))
+func groupBenchmarks(in internal.BenchmarkList, groups internal.StringSet, unit string) internal.BenchmarkGroupList {
+	ret := make(internal.BenchmarkGroupList, 0, len(in))
 	setMap := make(map[string]*internal.BenchmarkGroup)
 	for _, b := range in {
 		keysMap := makeKeys(b)
@@ -350,7 +348,7 @@ func groupBenchmarks(in internal.BenchmarkList, groups internal.StringSet, unit 
 }
 
 // Normalize modifies in to Remove Key/Value pairs that exist in every group
-func normalize(in BenchmarkGroupList) {
+func normalize(in internal.BenchmarkGroupList) {
 	if len(in) == 0 {
 		return
 	}
