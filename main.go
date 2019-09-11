@@ -212,9 +212,9 @@ func (a *Application) run() error {
 	a.log.Log(3, "filtered results: %s", filteredResults)
 	uniqueKeys := uniqueValuesForKey(filteredResults, pcfg.x)
 	a.log.Log(3, "uniqueKeys: %s", uniqueKeys)
-	var groupSet stringSet
+	var groupSet internal.StringSet
 	for _, g := range pcfg.group {
-		groupSet.add(g)
+		groupSet.Add(g)
 	}
 	// Each group is a line in our graph
 	a.log.Log(3, "groupSet: %v", groupSet)
@@ -235,7 +235,7 @@ func (a *Application) run() error {
 		plotLines = append(plotLines, pl)
 		a.log.Log(3, "plot line: %v", pl)
 	}
-	p, err := a.createPlot(pcfg, plotLines, uniqueKeys.order)
+	p, err := a.createPlot(pcfg, plotLines, uniqueKeys.Order)
 	if err != nil {
 		return errors.Wrap(err, "unable to make plot")
 	}
@@ -264,8 +264,8 @@ func allSingleKey(groups []*benchmarkGroup) bool {
 	return true
 }
 
-func savePlot(pcfg *parsedConfig, p *plot.Plot, lines []plotLine, set stringSet) error {
-	x := float64(30*(len(lines))*(len(set.items)) + 290)
+func savePlot(pcfg *parsedConfig, p *plot.Plot, lines []plotLine, set internal.StringSet) error {
+	x := float64(30*(len(lines))*(len(set.Items)) + 290)
 	wt, err := p.WriterTo(vg.Points(x), vg.Points(x/2), pcfg.imageFormat)
 	if err != nil {
 		return errors.Wrap(err, "unable to make plot writer")
@@ -363,25 +363,25 @@ func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
 	return ret
 }
 
-func uniqueValuesForKey(in []benchparse.BenchmarkResult, key string) stringSet {
-	var ret stringSet
+func uniqueValuesForKey(in []benchparse.BenchmarkResult, key string) internal.StringSet {
+	var ret internal.StringSet
 	for _, b := range in {
 		keys := makeKeys(b)
 		if keyValue, exists := keys.Values[key]; exists {
-			ret.add(keyValue)
+			ret.Add(keyValue)
 		}
 	}
 	return ret
 }
 
 // each returned benchmarkGroup will aggregate results by unique groups key/value pairs
-func groupBenchmarks(in []benchparse.BenchmarkResult, groups stringSet, unit string) []*benchmarkGroup {
+func groupBenchmarks(in []benchparse.BenchmarkResult, groups internal.StringSet, unit string) []*benchmarkGroup {
 	ret := make([]*benchmarkGroup, 0, len(in))
 	setMap := make(map[string]*benchmarkGroup)
 	for _, b := range in {
 		keysMap := makeKeys(b)
 		var hm internal.HashableMap
-		if len(groups.order) == 0 {
+		if len(groups.Order) == 0 {
 			// Group by everything except unit
 			for _, k := range keysMap.Order {
 				if k != unit {
@@ -389,7 +389,7 @@ func groupBenchmarks(in []benchparse.BenchmarkResult, groups stringSet, unit str
 				}
 			}
 		} else {
-			for _, ck := range groups.order {
+			for _, ck := range groups.Order {
 				if configValue, exists := keysMap.Values[ck]; exists {
 					hm.Insert(ck, configValue)
 				}
@@ -447,9 +447,9 @@ func meanAggregation(vals []float64) float64 {
 	return sum / float64(len(vals))
 }
 
-func valuesByX(in *benchmarkGroup, xDim string, unit string, allValues stringSet) [][]float64 {
-	ret := make([][]float64, 0, len(allValues.order))
-	for _, v := range allValues.order {
+func valuesByX(in *benchmarkGroup, xDim string, unit string, allValues internal.StringSet) [][]float64 {
+	ret := make([][]float64, 0, len(allValues.Order))
+	for _, v := range allValues.Order {
 		allVals := make([]float64, 0, len(in.results))
 		for _, b := range in.results {
 			benchmarkKeys := makeKeys(b)
@@ -538,25 +538,3 @@ func aggregatePlotterValues(f [][]float64, aggregation func([]float64) float64) 
 func main() {
 	mainInstance.main()
 }
-
-type stringSet struct {
-	items map[string]struct{}
-	order []string
-}
-
-func (s *stringSet) contains(k string) bool {
-	_, exists := s.items[k]
-	return exists
-}
-
-func (s *stringSet) add(k string) {
-	if s.contains(k) {
-		return
-	}
-	if s.items == nil {
-		s.items = make(map[string]struct{})
-	}
-	s.items[k] = struct{}{}
-	s.order = append(s.order, k)
-}
-
