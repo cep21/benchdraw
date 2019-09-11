@@ -336,14 +336,7 @@ func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
 }
 
 func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSet {
-	var ret internal.StringSet
-	for _, b := range in {
-		keys := makeKeys(b)
-		if keyValue, exists := keys.Values[key]; exists {
-			ret.Add(keyValue)
-		}
-	}
-	return ret
+	return in.UniqueValuesForKey(key)
 }
 
 // each returned benchmarkGroup will aggregate results by unique groups Key/Value pairs
