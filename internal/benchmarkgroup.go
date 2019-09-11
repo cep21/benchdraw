@@ -12,6 +12,31 @@ type BenchmarkGroup struct {
 
 type BenchmarkGroupList []*BenchmarkGroup
 
+func (b BenchmarkGroupList) Normalize() {
+	if len(b) == 0 {
+		return
+	}
+	keysToRemove := make([]string, 0, len(b[0].Values.Values))
+	for k, v := range b[0].Values.Values {
+		canRemoveValue := true
+	checkRestLoop:
+		for i := 1; i < len(b); i++ {
+			if !b[i].Values.Contains(k, v) {
+				canRemoveValue = false
+				break checkRestLoop
+			}
+		}
+		if canRemoveValue {
+			keysToRemove = append(keysToRemove, k)
+		}
+	}
+	for _, k := range keysToRemove {
+		for _, i := range b {
+			i.Values.Remove(k)
+		}
+	}
+}
+
 func (b *BenchmarkGroup) String() string {
 	return fmt.Sprintf("vals=%v len_results=%d", b.Values, len(b.Results))
 }

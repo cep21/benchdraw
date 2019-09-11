@@ -218,7 +218,7 @@ func (a *Application) run() error {
 	a.log.Log(3, "groupSet: %v", groupSet)
 	grouped := a.grouper.GroupBenchmarks(filteredResults, groupSet, pcfg.x)
 	a.log.Log(3, "grouped: %v", grouped)
-	normalize(grouped)
+	grouped.Normalize()
 	a.log.Log(3, "normalize: %v", grouped)
 
 	plotLines := make([]plotLine, 0, len(grouped))
@@ -310,32 +310,6 @@ func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
 
 func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSet {
 	return in.UniqueValuesForKey(key)
-}
-
-// Normalize modifies in to Remove Key/Value pairs that exist in every group
-func normalize(in internal.BenchmarkGroupList) {
-	if len(in) == 0 {
-		return
-	}
-	keysToRemove := make([]string, 0, len(in[0].Values.Values))
-	for k, v := range in[0].Values.Values {
-		canRemoveValue := true
-	checkRestLoop:
-		for i := 1; i < len(in); i++ {
-			if !in[i].Values.Contains(k, v) {
-				canRemoveValue = false
-				break checkRestLoop
-			}
-		}
-		if canRemoveValue {
-			keysToRemove = append(keysToRemove, k)
-		}
-	}
-	for _, k := range keysToRemove {
-		for _, i := range in {
-			i.Values.Remove(k)
-		}
-	}
 }
 
 func meanAggregation(vals []float64) float64 {
