@@ -299,13 +299,13 @@ func (a *Application) readBenchmarks(cfg *parsedConfig) (*benchparse.Run, error)
 	return a.benchreader.ReadBenchmarks(cfg.input)
 }
 
-func (a *Application) filterBenchmarks(in []benchparse.BenchmarkResult, filters []internal.FilterPair, unit string) []benchparse.BenchmarkResult {
+func (a *Application) filterBenchmarks(in internal.BenchmarkList, filters []internal.FilterPair, unit string) internal.BenchmarkList {
 	return a.filter.FilterBenchmarks(in, filters, unit)
 }
 
 type benchmarkGroup struct {
 	values  internal.HashableMap
-	results []benchparse.BenchmarkResult
+	results internal.BenchmarkList
 }
 
 func (b *benchmarkGroup) String() string {
@@ -335,7 +335,7 @@ func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
 	return ret
 }
 
-func uniqueValuesForKey(in []benchparse.BenchmarkResult, key string) internal.StringSet {
+func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSet {
 	var ret internal.StringSet
 	for _, b := range in {
 		keys := makeKeys(b)
@@ -347,7 +347,7 @@ func uniqueValuesForKey(in []benchparse.BenchmarkResult, key string) internal.St
 }
 
 // each returned benchmarkGroup will aggregate results by unique groups Key/Value pairs
-func groupBenchmarks(in []benchparse.BenchmarkResult, groups internal.StringSet, unit string) []*benchmarkGroup {
+func groupBenchmarks(in internal.BenchmarkList, groups internal.StringSet, unit string) []*benchmarkGroup {
 	ret := make([]*benchmarkGroup, 0, len(in))
 	setMap := make(map[string]*benchmarkGroup)
 	for _, b := range in {
@@ -373,7 +373,7 @@ func groupBenchmarks(in []benchparse.BenchmarkResult, groups internal.StringSet,
 		} else {
 			bg := &benchmarkGroup{
 				values:  hm,
-				results: []benchparse.BenchmarkResult{b},
+				results: internal.BenchmarkList{b},
 			}
 			setMap[mapHash] = bg
 			ret = append(ret, bg)
