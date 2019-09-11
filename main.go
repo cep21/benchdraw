@@ -20,6 +20,7 @@ import (
 type Application struct {
 	benchreader internal.BenchmarkReader
 	filter internal.Filter
+	grouper internal.Grouper
 	fs         flag.FlagSet
 	config     config
 	parameters []string
@@ -215,7 +216,7 @@ func (a *Application) run() error {
 	}
 	// Each group is a line in our graph
 	a.log.Log(3, "groupSet: %v", groupSet)
-	grouped := groupBenchmarks(filteredResults, groupSet, pcfg.x)
+	grouped := a.grouper.GroupBenchmarks(filteredResults, groupSet, pcfg.x)
 	a.log.Log(3, "grouped: %v", grouped)
 	normalize(grouped)
 	a.log.Log(3, "normalize: %v", grouped)
@@ -309,42 +310,6 @@ func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
 
 func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSet {
 	return in.UniqueValuesForKey(key)
-}
-
-// each returned internal.BenchmarkGroup will aggregate Results by unique groups Key/Value pairs
-func groupBenchmarks(in internal.BenchmarkList, groups internal.StringSet, unit string) internal.BenchmarkGroupList {
-	ret := make(internal.BenchmarkGroupList, 0, len(in))
-	setMap := make(map[string]*internal.BenchmarkGroup)
-	for _, b := range in {
-		keysMap := makeKeys(b)
-		var hm internal.HashableMap
-		if len(groups.Order) == 0 {
-			// Group by everything except unit
-			for _, k := range keysMap.Order {
-				if k != unit {
-					hm.Insert(k, keysMap.Values[k])
-				}
-			}
-		} else {
-			for _, ck := range groups.Order {
-				if configValue, exists := keysMap.Values[ck]; exists {
-					hm.Insert(ck, configValue)
-				}
-			}
-		}
-		mapHash := hm.Hash()
-		if existing, exists := setMap[mapHash]; exists {
-			existing.Results = append(existing.Results, b)
-		} else {
-			bg := &internal.BenchmarkGroup{
-				Values:  hm,
-				Results: internal.BenchmarkList{b},
-			}
-			setMap[mapHash] = bg
-			ret = append(ret, bg)
-		}
-	}
-	return ret
 }
 
 // Normalize modifies in to Remove Key/Value pairs that exist in every group
