@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/cep21/benchdraw/internal"
 	"io"
 	"log"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/cep21/benchparse"
@@ -225,7 +225,7 @@ func (a *Application) run() error {
 
 	plotLines := make([]plotLine, 0, len(grouped))
 	for _, g := range grouped {
-		// For this line in our graph, compute the X values
+		// For this line in our graph, compute the X Values
 		allVals := valuesByX(g, pcfg.x, pcfg.y, uniqueKeys)
 		pl := plotLine{
 			name:   g.nominalLineName(allSingleKey(grouped)),
@@ -249,15 +249,15 @@ func allSingleKey(groups []*benchmarkGroup) bool {
 	if len(groups) <= 1 {
 		return true
 	}
-	if len(groups[0].values.order) > 1 {
+	if len(groups[0].values.Order) > 1 {
 		return false
 	}
-	expectedKey := groups[0].values.order[0]
+	expectedKey := groups[0].values.Order[0]
 	for i := 1; i < len(groups); i++ {
-		if len(groups[i].values.order) > 1 {
+		if len(groups[i].values.Order) > 1 {
 			return false
 		}
-		if groups[0].values.order[0] != expectedKey {
+		if groups[0].values.Order[0] != expectedKey {
 			return false
 		}
 	}
@@ -282,7 +282,7 @@ type plotLine struct {
 }
 
 func (a *Application) setupFlags() error {
-	a.fs.StringVar(&a.config.plot, "plot", "bar", "Which picture type to plot.  Valid values [bar,box]")
+	a.fs.StringVar(&a.config.plot, "plot", "bar", "Which picture type to plot.  Valid Values [bar,box]")
 	a.fs.StringVar(&a.config.filter, "filter", "", "Filter which benchmarks to graph.  See README for filter syntax")
 	a.fs.StringVar(&a.config.title, "title", "", "A title for your graph.  If empty, will use filter")
 	a.fs.StringVar(&a.config.group, "group", "", "Pick benchmarks tags to group together")
@@ -332,7 +332,7 @@ func filterBenchmarks(in []benchparse.BenchmarkResult, filters []filterPair, uni
 }
 
 type benchmarkGroup struct {
-	values  hashableMap
+	values  internal.HashableMap
 	results []benchparse.BenchmarkResult
 }
 
@@ -341,12 +341,12 @@ func (b *benchmarkGroup) String() string {
 }
 
 func (b *benchmarkGroup) nominalLineName(singleKey bool) string {
-	if singleKey && len(b.values.order) > 0 {
-		return b.values.values[b.values.order[0]]
+	if singleKey && len(b.values.Order) > 0 {
+		return b.values.Values[b.values.Order[0]]
 	}
-	ret := make([]string, 0, len(b.values.order))
-	for _, c := range b.values.order {
-		ret = append(ret, c+"="+b.values.values[c])
+	ret := make([]string, 0, len(b.values.Order))
+	for _, c := range b.values.Order {
+		ret = append(ret, c+"="+b.values.Values[c])
 	}
 	if len(ret) == 0 {
 		return ""
@@ -354,11 +354,11 @@ func (b *benchmarkGroup) nominalLineName(singleKey bool) string {
 	return "[" + strings.Join(ret, ",") + "]"
 }
 
-func makeKeys(r benchparse.BenchmarkResult) hashableMap {
+func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
 	nameKeys := r.AllKeyValuePairs()
-	var ret hashableMap
+	var ret internal.HashableMap
 	for _, k := range nameKeys.Order {
-		ret.insert(k, nameKeys.Contents[k])
+		ret.Insert(k, nameKeys.Contents[k])
 	}
 	return ret
 }
@@ -367,7 +367,7 @@ func uniqueValuesForKey(in []benchparse.BenchmarkResult, key string) stringSet {
 	var ret stringSet
 	for _, b := range in {
 		keys := makeKeys(b)
-		if keyValue, exists := keys.values[key]; exists {
+		if keyValue, exists := keys.Values[key]; exists {
 			ret.add(keyValue)
 		}
 	}
@@ -380,18 +380,18 @@ func groupBenchmarks(in []benchparse.BenchmarkResult, groups stringSet, unit str
 	setMap := make(map[string]*benchmarkGroup)
 	for _, b := range in {
 		keysMap := makeKeys(b)
-		var hm hashableMap
+		var hm internal.HashableMap
 		if len(groups.order) == 0 {
 			// Group by everything except unit
-			for _, k := range keysMap.order {
+			for _, k := range keysMap.Order {
 				if k != unit {
-					hm.insert(k, keysMap.values[k])
+					hm.Insert(k, keysMap.Values[k])
 				}
 			}
 		} else {
 			for _, ck := range groups.order {
-				if configValue, exists := keysMap.values[ck]; exists {
-					hm.insert(ck, configValue)
+				if configValue, exists := keysMap.Values[ck]; exists {
+					hm.Insert(ck, configValue)
 				}
 			}
 		}
@@ -410,17 +410,17 @@ func groupBenchmarks(in []benchparse.BenchmarkResult, groups stringSet, unit str
 	return ret
 }
 
-// Normalize modifies in to remove key/value pairs that exist in every group
+// Normalize modifies in to Remove key/value pairs that exist in every group
 func normalize(in []*benchmarkGroup) {
 	if len(in) == 0 {
 		return
 	}
-	keysToRemove := make([]string, 0, len(in[0].values.values))
-	for k, v := range in[0].values.values {
+	keysToRemove := make([]string, 0, len(in[0].values.Values))
+	for k, v := range in[0].values.Values {
 		canRemoveValue := true
 	checkRestLoop:
 		for i := 1; i < len(in); i++ {
-			if !in[i].values.contains(k, v) {
+			if !in[i].values.Contains(k, v) {
 				canRemoveValue = false
 				break checkRestLoop
 			}
@@ -431,7 +431,7 @@ func normalize(in []*benchmarkGroup) {
 	}
 	for _, k := range keysToRemove {
 		for _, i := range in {
-			i.values.remove(k)
+			i.values.Remove(k)
 		}
 	}
 }
@@ -453,7 +453,7 @@ func valuesByX(in *benchmarkGroup, xDim string, unit string, allValues stringSet
 		allVals := make([]float64, 0, len(in.results))
 		for _, b := range in.results {
 			benchmarkKeys := makeKeys(b)
-			if benchmarkKeys.values[xDim] != v {
+			if benchmarkKeys.Values[xDim] != v {
 				continue
 			}
 			if val, exists := b.ValueByUnit(unit); exists {
@@ -469,7 +469,7 @@ func (a *Application) addBar(line plotLine, offset int, numLines int) (*plotter.
 	w := vg.Points(30)
 	a.log.Log(2, "adding line %s", line.name)
 	groupValues := aggregatePlotterValues(line.values, meanAggregation)
-	a.log.Log(2, "values: %v", groupValues)
+	a.log.Log(2, "Values: %v", groupValues)
 	bar, err := plotter.NewBarChart(plotter.YValues{XYer: groupValues}, w)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to make bar chart")
@@ -483,7 +483,7 @@ func (a *Application) addBar(line plotLine, offset int, numLines int) (*plotter.
 func (a *Application) addLine(line plotLine, offset int) (*plotter.Line, error) {
 	a.log.Log(2, "adding line %s", line.name)
 	groupValues := aggregatePlotterValues(line.values, meanAggregation)
-	a.log.Log(2, "values: %v", groupValues)
+	a.log.Log(2, "Values: %v", groupValues)
 	pline, err := plotter.NewLine(groupValues)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to make bar chart")
@@ -560,76 +560,3 @@ func (s *stringSet) add(k string) {
 	s.order = append(s.order, k)
 }
 
-type hashableMap struct {
-	values map[string]string
-	order  []string
-}
-
-func mustWrite(_ int, err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func mustNotError(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (h *hashableMap) String() string {
-	return fmt.Sprintf("%v", h.values)
-}
-
-func (h *hashableMap) contains(k string, v string) bool {
-	current, exists := h.values[k]
-	return exists && current == v
-}
-
-func (h *hashableMap) insert(k string, v string) {
-	if _, exists := h.values[k]; exists {
-		h.remove(k)
-	}
-	if h.values == nil {
-		h.values = make(map[string]string)
-	}
-	h.values[k] = v
-	h.order = append(h.order, k)
-}
-
-func (h *hashableMap) remove(k string) {
-	if h.values == nil {
-		return
-	}
-	delete(h.values, k)
-	for i, o := range h.order {
-		if o == k {
-			h.order = append(h.order[:i], h.order[i+1:]...)
-			return
-		}
-	}
-}
-
-func (h *hashableMap) Hash() string {
-	type kv struct {
-		k string
-		v string
-	}
-	toSort := make([]kv, 0, len(h.values))
-	for k, v := range h.values {
-		toSort = append(toSort, kv{k: k, v: v})
-	}
-	sort.Slice(toSort, func(i, j int) bool {
-		return toSort[i].k < toSort[j].k
-	})
-	var uid strings.Builder
-	for _, s := range toSort {
-		if uid.Len() != 0 {
-			mustWrite(uid.WriteString(string([]byte{0, 0})))
-		}
-		mustWrite(uid.WriteString(s.k))
-		mustNotError(uid.WriteByte(0))
-		mustWrite(uid.WriteString(s.v))
-	}
-	return uid.String()
-}
