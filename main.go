@@ -206,7 +206,7 @@ func (a *Application) run() error {
 		return errors.Wrap(err, "unable to read benchmark data")
 	}
 	filteredResults := a.filterBenchmarks(run.Results, pcfg.filters, pcfg.y)
-	a.log.Log(3, "filtered results: %s", filteredResults)
+	a.log.Log(3, "filtered Results: %s", filteredResults)
 	uniqueKeys := uniqueValuesForKey(filteredResults, pcfg.x)
 	a.log.Log(3, "uniqueKeys: %s", uniqueKeys)
 	var groupSet internal.StringSet
@@ -225,7 +225,7 @@ func (a *Application) run() error {
 		// For this line in our graph, compute the X Values
 		allVals := valuesByX(g, pcfg.x, pcfg.y, uniqueKeys)
 		pl := plotLine{
-			name:   g.nominalLineName(allSingleKey(grouped)),
+			name:   g.NominalLineName(allSingleKey(grouped)),
 			values: allVals,
 		}
 		a.log.Log(3, "nominal=%v plot=%v", pl.name, pl)
@@ -246,15 +246,15 @@ func allSingleKey(groups BenchmarkGroupList) bool {
 	if len(groups) <= 1 {
 		return true
 	}
-	if len(groups[0].values.Order) > 1 {
+	if len(groups[0].Values.Order) > 1 {
 		return false
 	}
-	expectedKey := groups[0].values.Order[0]
+	expectedKey := groups[0].Values.Order[0]
 	for i := 1; i < len(groups); i++ {
-		if len(groups[i].values.Order) > 1 {
+		if len(groups[i].Values.Order) > 1 {
 			return false
 		}
-		if groups[0].values.Order[0] != expectedKey {
+		if groups[0].Values.Order[0] != expectedKey {
 			return false
 		}
 	}
@@ -303,29 +303,6 @@ func (a *Application) filterBenchmarks(in internal.BenchmarkList, filters []inte
 	return a.filter.FilterBenchmarks(in, filters, unit)
 }
 
-type benchmarkGroup struct {
-	values  internal.HashableMap
-	results internal.BenchmarkList
-}
-
-func (b *benchmarkGroup) String() string {
-	return fmt.Sprintf("vals=%v len_results=%d", b.values, len(b.results))
-}
-
-func (b *benchmarkGroup) nominalLineName(singleKey bool) string {
-	if singleKey && len(b.values.Order) > 0 {
-		return b.values.Values[b.values.Order[0]]
-	}
-	ret := make([]string, 0, len(b.values.Order))
-	for _, c := range b.values.Order {
-		ret = append(ret, c+"="+b.values.Values[c])
-	}
-	if len(ret) == 0 {
-		return ""
-	}
-	return "[" + strings.Join(ret, ",") + "]"
-}
-
 func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
 	return internal.MakeKeys(r)
 }
@@ -334,12 +311,12 @@ func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSe
 	return in.UniqueValuesForKey(key)
 }
 
-type BenchmarkGroupList []*benchmarkGroup
+type BenchmarkGroupList []*internal.BenchmarkGroup
 
-// each returned benchmarkGroup will aggregate results by unique groups Key/Value pairs
+// each returned internal.BenchmarkGroup will aggregate Results by unique groups Key/Value pairs
 func groupBenchmarks(in internal.BenchmarkList, groups internal.StringSet, unit string) BenchmarkGroupList {
 	ret := make(BenchmarkGroupList, 0, len(in))
-	setMap := make(map[string]*benchmarkGroup)
+	setMap := make(map[string]*internal.BenchmarkGroup)
 	for _, b := range in {
 		keysMap := makeKeys(b)
 		var hm internal.HashableMap
@@ -359,11 +336,11 @@ func groupBenchmarks(in internal.BenchmarkList, groups internal.StringSet, unit 
 		}
 		mapHash := hm.Hash()
 		if existing, exists := setMap[mapHash]; exists {
-			existing.results = append(existing.results, b)
+			existing.Results = append(existing.Results, b)
 		} else {
-			bg := &benchmarkGroup{
-				values:  hm,
-				results: internal.BenchmarkList{b},
+			bg := &internal.BenchmarkGroup{
+				Values:  hm,
+				Results: internal.BenchmarkList{b},
 			}
 			setMap[mapHash] = bg
 			ret = append(ret, bg)
@@ -377,12 +354,12 @@ func normalize(in BenchmarkGroupList) {
 	if len(in) == 0 {
 		return
 	}
-	keysToRemove := make([]string, 0, len(in[0].values.Values))
-	for k, v := range in[0].values.Values {
+	keysToRemove := make([]string, 0, len(in[0].Values.Values))
+	for k, v := range in[0].Values.Values {
 		canRemoveValue := true
 	checkRestLoop:
 		for i := 1; i < len(in); i++ {
-			if !in[i].values.Contains(k, v) {
+			if !in[i].Values.Contains(k, v) {
 				canRemoveValue = false
 				break checkRestLoop
 			}
@@ -393,7 +370,7 @@ func normalize(in BenchmarkGroupList) {
 	}
 	for _, k := range keysToRemove {
 		for _, i := range in {
-			i.values.Remove(k)
+			i.Values.Remove(k)
 		}
 	}
 }
@@ -409,11 +386,11 @@ func meanAggregation(vals []float64) float64 {
 	return sum / float64(len(vals))
 }
 
-func valuesByX(in *benchmarkGroup, xDim string, unit string, allValues internal.StringSet) [][]float64 {
+func valuesByX(in *internal.BenchmarkGroup, xDim string, unit string, allValues internal.StringSet) [][]float64 {
 	ret := make([][]float64, 0, len(allValues.Order))
 	for _, v := range allValues.Order {
-		allVals := make([]float64, 0, len(in.results))
-		for _, b := range in.results {
+		allVals := make([]float64, 0, len(in.Results))
+		for _, b := range in.Results {
 			benchmarkKeys := makeKeys(b)
 			if benchmarkKeys.Values[xDim] != v {
 				continue
