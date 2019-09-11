@@ -4,6 +4,7 @@
 # Build code with readonly to verify go.mod is up to date in CI
 build:
 	go build -mod=readonly ./...
+	go build -mod=readonly .
 
 # test code with race detector.  Also tests benchmarks (but only for 1ns so they at least run once)
 test:
@@ -35,9 +36,9 @@ setup_ci:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint
 
 clean:
-	rm ./examples/*.svg
+	rm -f ./examples/*.svg ./benchdraw
 
-draw_examples: build clean
+draw_examples: clean build
 	./benchdraw --filter="BenchmarkTdigest_Add" --x=source < ./testdata/simpleres.txt > ./examples/piped_output.svg
 	./benchdraw --filter="BenchmarkTdigest_Add" --x=source --group="digest" --v=4 --input=./testdata/simpleres.txt --output=./examples/set_filename.svg
 	./benchdraw --filter="BenchmarkDecode/level=best" --x=size --plot=line --v=4 --y="allocs/op" --input=./testdata/decodeexample.txt --output=./examples/sample_line.svg
