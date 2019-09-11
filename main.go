@@ -327,12 +327,7 @@ func (b *benchmarkGroup) nominalLineName(singleKey bool) string {
 }
 
 func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
-	nameKeys := r.AllKeyValuePairs()
-	var ret internal.HashableMap
-	for _, k := range nameKeys.Order {
-		ret.Insert(k, nameKeys.Contents[k])
-	}
-	return ret
+	return internal.MakeKeys(r)
 }
 
 func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSet {

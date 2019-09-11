@@ -7,7 +7,7 @@ type BenchmarkList []benchparse.BenchmarkResult
 func (b BenchmarkList) UniqueValuesForKey(key string) StringSet {
 	var ret StringSet
 	for _, b := range b {
-		keys := makeKeys(b)
+		keys := MakeKeys(b)
 		if keyValue, exists := keys.Values[key]; exists {
 			ret.Add(keyValue)
 		}
@@ -15,7 +15,7 @@ func (b BenchmarkList) UniqueValuesForKey(key string) StringSet {
 	return ret
 }
 
-func makeKeys(r benchparse.BenchmarkResult) HashableMap {
+func MakeKeys(r benchparse.BenchmarkResult) HashableMap {
 	nameKeys := r.AllKeyValuePairs()
 	var ret HashableMap
 	for _, k := range nameKeys.Order {
