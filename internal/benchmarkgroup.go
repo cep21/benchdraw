@@ -12,6 +12,25 @@ type BenchmarkGroup struct {
 
 type BenchmarkGroupList []*BenchmarkGroup
 
+func (b BenchmarkGroupList) AllSingleKey() bool {
+	if len(b) <= 1 {
+		return true
+	}
+	if len(b[0].Values.Order) > 1 {
+		return false
+	}
+	expectedKey := b[0].Values.Order[0]
+	for i := 1; i < len(b); i++ {
+		if len(b[i].Values.Order) > 1 {
+			return false
+		}
+		if b[0].Values.Order[0] != expectedKey {
+			return false
+		}
+	}
+	return true
+}
+
 func (b BenchmarkGroupList) Normalize() {
 	if len(b) == 0 {
 		return
@@ -53,4 +72,22 @@ func (b *BenchmarkGroup) NominalLineName(singleKey bool) string {
 		return ""
 	}
 	return "[" + strings.Join(ret, ",") + "]"
+}
+
+func (b *BenchmarkGroup) ValuesByX(xDim string, unit string, allValues StringSet) [][]float64 {
+	ret := make([][]float64, 0, len(allValues.Order))
+	for _, v := range allValues.Order {
+		allVals := make([]float64, 0, len(b.Results))
+		for _, b := range b.Results {
+			benchmarkKeys := MakeKeys(b)
+			if benchmarkKeys.Values[xDim] != v {
+				continue
+			}
+			if val, exists := b.ValueByUnit(unit); exists {
+				allVals = append(allVals, val)
+			}
+		}
+		ret = append(ret, allVals)
+	}
+	return ret
 }

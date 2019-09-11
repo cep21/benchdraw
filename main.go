@@ -3,40 +3,26 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/cep21/benchdraw/internal"
 	"io"
 	"log"
 	"os"
 	"strings"
 
-	"github.com/cep21/benchparse"
+	"github.com/cep21/benchdraw/internal"
+
 	"github.com/pkg/errors"
-	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotter"
-	"gonum.org/v1/plot/plotutil"
-	"gonum.org/v1/plot/vg"
 )
 
 type Application struct {
 	benchreader internal.BenchmarkReader
-	filter internal.Filter
-	grouper internal.Grouper
-	fs         flag.FlagSet
-	config     config
-	parameters []string
-	log        Logger
-	osExit     func(int)
-}
-
-type Logger struct {
-	verbosity int
-	logger    *log.Logger
-}
-
-func (l *Logger) Log(verbosity int, msg string, fmtArgs ...interface{}) {
-	if l.verbosity >= verbosity {
-		l.logger.Printf(msg, fmtArgs...)
-	}
+	filter      internal.Filter
+	grouper     internal.Grouper
+	plotter     internal.Plotter
+	fs          flag.FlagSet
+	config      config
+	parameters  []string
+	log         internal.Logger
+	osExit      func(int)
 }
 
 type config struct {
@@ -73,7 +59,7 @@ func (c config) parse() (*parsedConfig, error) {
 	if ret.title == "" {
 		ret.title = c.filter
 	}
-	pt, err := toPlotType(c.plot)
+	pt, err := internal.ToPlotType(c.plot)
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to understand plot type %s", c.plot)
 	}
@@ -123,29 +109,11 @@ func toFilterPairs(s string) []internal.FilterPair {
 	return ret
 }
 
-func toPlotType(s string) (plotType, error) {
-	if s == "" || s == "bar" {
-		return plotTypeBar, nil
-	}
-	if s == "line" {
-		return plotTypeLine, nil
-	}
-	return plotType(0), errors.New("unknown plot type " + s)
-}
-
-type plotType int
-
-const (
-	_ plotType = iota
-	plotTypeBar
-	plotTypeLine
-)
-
 type parsedConfig struct {
 	title   string
 	filters []internal.FilterPair
 	group   []string
-	plot    plotType
+	plot    internal.PlotType
 	x       string
 	y       string
 	input   io.Reader
@@ -171,8 +139,8 @@ func (p *parsedConfig) Close() error {
 
 var mainInstance = &Application{
 	parameters: os.Args[1:],
-	log: Logger{
-		logger: log.New(os.Stderr, "benchdraw", log.LstdFlags),
+	log: internal.Logger{
+		Logger: log.New(os.Stderr, "benchdraw", log.LstdFlags),
 	},
 	osExit: os.Exit,
 }
@@ -201,14 +169,14 @@ func (a *Application) run() error {
 			a.log.Log(1, "unable to shutdown config: %s", err)
 		}
 	}()
-	run, err := a.readBenchmarks(pcfg)
+	run, err := a.benchreader.ReadBenchmarks(pcfg.input)
 	a.log.Log(3, "benchmarks: %s", run)
 	if err != nil {
 		return errors.Wrap(err, "unable to read benchmark data")
 	}
-	filteredResults := a.filterBenchmarks(run.Results, pcfg.filters, pcfg.y)
+	filteredResults := a.filter.FilterBenchmarks(run.Results, pcfg.filters, pcfg.y)
 	a.log.Log(3, "filtered Results: %s", filteredResults)
-	uniqueKeys := uniqueValuesForKey(filteredResults, pcfg.x)
+	uniqueKeys := filteredResults.UniqueValuesForKey(pcfg.x)
 	a.log.Log(3, "uniqueKeys: %s", uniqueKeys)
 	var groupSet internal.StringSet
 	for _, g := range pcfg.group {
@@ -221,62 +189,19 @@ func (a *Application) run() error {
 	grouped.Normalize()
 	a.log.Log(3, "normalize: %v", grouped)
 
-	plotLines := make([]plotLine, 0, len(grouped))
+	plotLines := make([]internal.PlotLine, 0, len(grouped))
 	for _, g := range grouped {
 		// For this line in our graph, compute the X Values
-		allVals := valuesByX(g, pcfg.x, pcfg.y, uniqueKeys)
-		pl := plotLine{
-			name:   g.NominalLineName(allSingleKey(grouped)),
-			values: allVals,
+		allVals := g.ValuesByX(pcfg.x, pcfg.y, uniqueKeys)
+		pl := internal.PlotLine{
+			Name:   g.NominalLineName(grouped.AllSingleKey()),
+			Values: allVals,
 		}
-		a.log.Log(3, "nominal=%v plot=%v", pl.name, pl)
+		a.log.Log(3, "nominal=%v plot=%v", pl.Name, pl)
 		plotLines = append(plotLines, pl)
 		a.log.Log(3, "plot line: %v", pl)
 	}
-	p, err := a.createPlot(pcfg, plotLines, uniqueKeys.Order)
-	if err != nil {
-		return errors.Wrap(err, "unable to make plot")
-	}
-	if err := savePlot(pcfg, p, plotLines, uniqueKeys); err != nil {
-		return errors.Wrap(err, "unable to save plot")
-	}
-	return nil
-}
-
-func allSingleKey(groups internal.BenchmarkGroupList) bool {
-	if len(groups) <= 1 {
-		return true
-	}
-	if len(groups[0].Values.Order) > 1 {
-		return false
-	}
-	expectedKey := groups[0].Values.Order[0]
-	for i := 1; i < len(groups); i++ {
-		if len(groups[i].Values.Order) > 1 {
-			return false
-		}
-		if groups[0].Values.Order[0] != expectedKey {
-			return false
-		}
-	}
-	return true
-}
-
-func savePlot(pcfg *parsedConfig, p *plot.Plot, lines []plotLine, set internal.StringSet) error {
-	x := float64(30*(len(lines))*(len(set.Items)) + 290)
-	wt, err := p.WriterTo(vg.Points(x), vg.Points(x/2), pcfg.imageFormat)
-	if err != nil {
-		return errors.Wrap(err, "unable to make plot writer")
-	}
-	if _, err := wt.WriteTo(pcfg.output); err != nil {
-		return errors.Wrap(err, "unable to write plotter to output")
-	}
-	return nil
-}
-
-type plotLine struct {
-	name   string
-	values [][]float64
+	return a.plotter.Plot(a.log, pcfg.output, pcfg.imageFormat, pcfg.plot, pcfg.title, pcfg.x, pcfg.y, plotLines, uniqueKeys)
 }
 
 func (a *Application) setupFlags() error {
@@ -289,126 +214,11 @@ func (a *Application) setupFlags() error {
 	a.fs.StringVar(&a.config.input, "input", "-", "Input file to read from.  - means stdin")
 	a.fs.StringVar(&a.config.output, "output", "-", "Output file to write to.  - means stdout")
 	a.fs.StringVar(&a.config.format, "format", "svg", "Which image format to render.  Must be supported by gonum/plot.  You probably want the default.")
-	a.fs.IntVar(&a.log.verbosity, "v", 0, "Higher the Value, the more verbose the output.  Max Value is 4")
+	a.fs.IntVar(&a.log.Verbosity, "v", 0, "Higher the Value, the more verbose the output.  Max Value is 4")
 	if err := a.fs.Parse(a.parameters); err != nil {
 		return errors.Wrap(err, "unable to parse cli parameters")
 	}
 	return nil
-}
-
-func (a *Application) readBenchmarks(cfg *parsedConfig) (*benchparse.Run, error) {
-	return a.benchreader.ReadBenchmarks(cfg.input)
-}
-
-func (a *Application) filterBenchmarks(in internal.BenchmarkList, filters []internal.FilterPair, unit string) internal.BenchmarkList {
-	return a.filter.FilterBenchmarks(in, filters, unit)
-}
-
-func makeKeys(r benchparse.BenchmarkResult) internal.HashableMap {
-	return internal.MakeKeys(r)
-}
-
-func uniqueValuesForKey(in internal.BenchmarkList, key string) internal.StringSet {
-	return in.UniqueValuesForKey(key)
-}
-
-func meanAggregation(vals []float64) float64 {
-	if len(vals) == 0 {
-		return 0
-	}
-	sum := 0.0
-	for _, v := range vals {
-		sum += v
-	}
-	return sum / float64(len(vals))
-}
-
-func valuesByX(in *internal.BenchmarkGroup, xDim string, unit string, allValues internal.StringSet) [][]float64 {
-	ret := make([][]float64, 0, len(allValues.Order))
-	for _, v := range allValues.Order {
-		allVals := make([]float64, 0, len(in.Results))
-		for _, b := range in.Results {
-			benchmarkKeys := makeKeys(b)
-			if benchmarkKeys.Values[xDim] != v {
-				continue
-			}
-			if val, exists := b.ValueByUnit(unit); exists {
-				allVals = append(allVals, val)
-			}
-		}
-		ret = append(ret, allVals)
-	}
-	return ret
-}
-
-func (a *Application) addBar(line plotLine, offset int, numLines int) (*plotter.BarChart, error) {
-	w := vg.Points(30)
-	a.log.Log(2, "adding line %s", line.name)
-	groupValues := aggregatePlotterValues(line.values, meanAggregation)
-	a.log.Log(2, "Values: %v", groupValues)
-	bar, err := plotter.NewBarChart(plotter.YValues{XYer: groupValues}, w)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to make bar chart")
-	}
-	bar.LineStyle.Width = 0
-	bar.Offset = w * vg.Points(float64(numLines/-2+offset))
-	bar.Color = plotutil.Color(offset)
-	return bar, nil
-}
-
-func (a *Application) addLine(line plotLine, offset int) (*plotter.Line, error) {
-	a.log.Log(2, "adding line %s", line.name)
-	groupValues := aggregatePlotterValues(line.values, meanAggregation)
-	a.log.Log(2, "Values: %v", groupValues)
-	pline, err := plotter.NewLine(groupValues)
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to make bar chart")
-	}
-	pline.LineStyle.Width = 1
-	pline.Color = plotutil.Color(offset)
-	return pline, nil
-}
-
-func (a *Application) makePlotter(cfg *parsedConfig, lines []plotLine, line plotLine, index int) (plot.Plotter, error) {
-	if cfg.plot == plotTypeBar {
-		return a.addBar(line, index, len(lines))
-	}
-	return a.addLine(line, index)
-}
-
-func (a *Application) createPlot(cfg *parsedConfig, lines []plotLine, nominalX []string) (*plot.Plot, error) {
-	p, err := plot.New()
-	if err != nil {
-		return nil, errors.Wrap(err, "unable to create initial plot")
-	}
-	p.Title.Text = cfg.title
-	p.Y.Label.Text = cfg.y
-	p.X.Label.Text = cfg.x
-	a.log.Log(2, "nominal x: %v", nominalX)
-	p.NominalX(nominalX...)
-	p.Legend.Top = true
-	for i, line := range lines {
-		pl, err := a.makePlotter(cfg, lines, line, i)
-		if err != nil {
-			return nil, errors.Wrap(err, "unable to make plotter")
-		}
-		p.Add(pl)
-		if asT, ok := pl.(plot.Thumbnailer); ok {
-			p.Legend.Add(line.name, asT)
-		}
-	}
-	return p, nil
-}
-
-func aggregatePlotterValues(f [][]float64, aggregation func([]float64) float64) plotter.XYer {
-	var ret plotter.XYs
-	for i, x := range f {
-		ret = append(ret, plotter.XY{
-			X: float64(i),
-			Y: aggregation(x),
-		})
-	}
-	return ret
 }
 
 func main() {

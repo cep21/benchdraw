@@ -10,7 +10,7 @@ type FilterPair struct {
 	Value string
 }
 
-func (f *Filter) FilterBenchmarks(in []benchparse.BenchmarkResult, filters []FilterPair, unit string) []benchparse.BenchmarkResult {
+func (f *Filter) FilterBenchmarks(in []benchparse.BenchmarkResult, filters []FilterPair, unit string) BenchmarkList {
 	ret := make([]benchparse.BenchmarkResult, 0, len(in))
 	for _, b := range in {
 		// Benchmark must have a valid unit

@@ -1,7 +1,6 @@
 package internal
 
 type Grouper struct {
-
 }
 
 // each returned BenchmarkGroup will aggregate Results by unique groups Key/Value pairs

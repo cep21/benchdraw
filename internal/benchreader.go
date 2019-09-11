@@ -1,14 +1,14 @@
 package internal
 
 import (
+	"io"
+
 	"github.com/cep21/benchparse"
 	"github.com/pkg/errors"
-	"io"
 )
 
 type BenchmarkReader struct {
 }
-
 
 func (a *BenchmarkReader) ReadBenchmarks(in io.Reader) (*benchparse.Run, error) {
 	d := benchparse.Decoder{}

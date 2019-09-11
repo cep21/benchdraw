@@ -20,4 +20,3 @@ func (s *StringSet) Add(k string) {
 	s.Items[k] = struct{}{}
 	s.Order = append(s.Order, k)
 }
-
