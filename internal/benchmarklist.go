@@ -2,12 +2,15 @@ package internal
 
 import "github.com/cep21/benchparse"
 
+// BenchmarkList is a list of benchmarks
 type BenchmarkList []benchparse.BenchmarkResult
 
-func (b BenchmarkList) UniqueValuesForKey(key string) StringSet {
-	var ret StringSet
+// UniqueValuesForKey returns all common value properties of each benchmark in this list
+// for a key.
+func (b BenchmarkList) UniqueValuesForKey(key string) OrderedStringSet {
+	var ret OrderedStringSet
 	for _, b := range b {
-		keys := MakeKeys(b)
+		keys := makeKeys(b)
 		if keyValue, exists := keys.Values[key]; exists {
 			ret.Add(keyValue)
 		}
@@ -15,9 +18,9 @@ func (b BenchmarkList) UniqueValuesForKey(key string) StringSet {
 	return ret
 }
 
-func MakeKeys(r benchparse.BenchmarkResult) HashableMap {
+func makeKeys(r benchparse.BenchmarkResult) OrderedStringStringMap {
 	nameKeys := r.AllKeyValuePairs()
-	var ret HashableMap
+	var ret OrderedStringStringMap
 	for _, k := range nameKeys.Order {
 		ret.Insert(k, nameKeys.Contents[k])
 	}

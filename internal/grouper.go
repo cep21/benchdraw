@@ -1,15 +1,16 @@
 package internal
 
+// Grouper understands how to combine benchmarks into groups of common key/value pairs
 type Grouper struct {
 }
 
-// each returned BenchmarkGroup will aggregate Results by unique groups Key/Value pairs
-func (g *Grouper) GroupBenchmarks(in BenchmarkList, groups StringSet, unit string) BenchmarkGroupList {
+// GroupBenchmarks will return for each returned BenchmarkGroup will aggregate Results by unique groups Key/Value pairs
+func (g *Grouper) GroupBenchmarks(in BenchmarkList, groups OrderedStringSet, unit string) BenchmarkGroupList {
 	ret := make(BenchmarkGroupList, 0, len(in))
 	setMap := make(map[string]*BenchmarkGroup)
 	for _, b := range in {
-		keysMap := MakeKeys(b)
-		var hm HashableMap
+		keysMap := makeKeys(b)
+		var hm OrderedStringStringMap
 		if len(groups.Order) == 0 {
 			// Group by everything except unit
 			for _, k := range keysMap.Order {

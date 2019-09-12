@@ -50,7 +50,7 @@ func filterEmpty(s []string) []string {
 func (c config) parse() (*parsedConfig, error) {
 	ret := parsedConfig{
 		title:       c.title,
-		filters:     toFilterPairs(c.filter),
+		filters:     internal.ToFilterPairs(c.filter),
 		group:       filterEmpty(strings.Split(c.group, "/")),
 		imageFormat: c.format,
 		y:           c.y,
@@ -85,28 +85,6 @@ func (c config) parse() (*parsedConfig, error) {
 		ret.onClose = append(ret.onClose, f.Close)
 	}
 	return &ret, nil
-}
-
-func toFilterPairs(s string) []internal.FilterPair {
-	parts := strings.Split(s, "/")
-	ret := make([]internal.FilterPair, 0, len(parts))
-	for _, p := range parts {
-		if len(p) == 0 {
-			continue
-		}
-		kv := strings.SplitN(p, "=", 2)
-		if len(kv) == 1 {
-			ret = append(ret, internal.FilterPair{
-				Key: p,
-			})
-		} else {
-			ret = append(ret, internal.FilterPair{
-				Key:   kv[0],
-				Value: kv[1],
-			})
-		}
-	}
-	return ret
 }
 
 type parsedConfig struct {
@@ -178,7 +156,7 @@ func (a *Application) run() error {
 	a.log.Log(3, "filtered Results: %s", filteredResults)
 	uniqueKeys := filteredResults.UniqueValuesForKey(pcfg.x)
 	a.log.Log(3, "uniqueKeys: %s", uniqueKeys)
-	var groupSet internal.StringSet
+	var groupSet internal.OrderedStringSet
 	for _, g := range pcfg.group {
 		groupSet.Add(g)
 	}

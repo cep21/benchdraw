@@ -10,9 +10,11 @@ import (
 	"gonum.org/v1/plot/vg"
 )
 
+// Plotter knows how to draw a picture to a writer
 type Plotter struct {
 }
 
+// ToPlotType converts a string name to a known plot type
 func ToPlotType(s string) (PlotType, error) {
 	if s == "" || s == "bar" {
 		return PlotTypeBar, nil
@@ -27,11 +29,14 @@ type PlotType int
 
 const (
 	_ PlotType = iota
+	// PlotTypeBar is a bar graph
 	PlotTypeBar
+	// PlotTypeLine is a line graph
 	PlotTypeLine
 )
 
-func (l *Plotter) Plot(log Logger, out io.Writer, imgFormat string, pt PlotType, title string, x string, y string, lines []PlotLine, uniqueKeys StringSet) error {
+// Plot will write to out this plot.
+func (l *Plotter) Plot(log Logger, out io.Writer, imgFormat string, pt PlotType, title string, x string, y string, lines []PlotLine, uniqueKeys OrderedStringSet) error {
 	p, err := l.createPlot(log, pt, title, x, y, lines, uniqueKeys.Order)
 	if err != nil {
 		return errors.Wrap(err, "unable to make plot")
@@ -42,12 +47,14 @@ func (l *Plotter) Plot(log Logger, out io.Writer, imgFormat string, pt PlotType,
 	return nil
 }
 
+// PlotLine is a line to plot.  It has a name (used in the legend) and values for each x index.  It assumes integer
+// indexes.
 type PlotLine struct {
 	Name   string
 	Values [][]float64
 }
 
-func (l *Plotter) savePlot(out io.Writer, p *plot.Plot, imageFormat string, lines []PlotLine, set StringSet) error {
+func (l *Plotter) savePlot(out io.Writer, p *plot.Plot, imageFormat string, lines []PlotLine, set OrderedStringSet) error {
 	x := float64(30*(len(lines))*(len(set.Items)) + 290)
 	wt, err := p.WriterTo(vg.Points(x), vg.Points(x/2), imageFormat)
 	if err != nil {
@@ -86,7 +93,7 @@ func (l *Plotter) createPlot(log Logger, pt PlotType, title string, x string, y 
 func (l *Plotter) addBar(log Logger, line PlotLine, offset int, numLines int) (*plotter.BarChart, error) {
 	w := vg.Points(30)
 	log.Log(2, "adding line %s", line.Name)
-	groupValues := AggregatePlotterValues(line.Values, MeanAggregation)
+	groupValues := aggregatePlotterValues(line.Values, meanAggregation)
 	log.Log(2, "Values: %v", groupValues)
 	bar, err := plotter.NewBarChart(plotter.YValues{XYer: groupValues}, w)
 	if err != nil {
@@ -100,7 +107,7 @@ func (l *Plotter) addBar(log Logger, line PlotLine, offset int, numLines int) (*
 
 func (l *Plotter) addLine(log Logger, line PlotLine, offset int) (*plotter.Line, error) {
 	log.Log(2, "adding line %s", line.Name)
-	groupValues := AggregatePlotterValues(line.Values, MeanAggregation)
+	groupValues := aggregatePlotterValues(line.Values, meanAggregation)
 	log.Log(2, "Values: %v", groupValues)
 	pline, err := plotter.NewLine(groupValues)
 	if err != nil {
@@ -118,7 +125,7 @@ func (l *Plotter) makePlotter(log Logger, pt PlotType, lines []PlotLine, line Pl
 	return l.addLine(log, line, index)
 }
 
-func AggregatePlotterValues(f [][]float64, aggregation func([]float64) float64) plotter.XYer {
+func aggregatePlotterValues(f [][]float64, aggregation func([]float64) float64) plotter.XYer {
 	var ret plotter.XYs
 	for i, x := range f {
 		ret = append(ret, plotter.XY{
@@ -129,7 +136,7 @@ func AggregatePlotterValues(f [][]float64, aggregation func([]float64) float64) 
 	return ret
 }
 
-func MeanAggregation(vals []float64) float64 {
+func meanAggregation(vals []float64) float64 {
 	if len(vals) == 0 {
 		return 0
 	}

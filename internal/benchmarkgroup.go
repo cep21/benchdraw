@@ -5,13 +5,19 @@ import (
 	"strings"
 )
 
+// BenchmarkGroup contains a set of parsed benchmark results for a group of values.  All benchmarks will have the
+// key/value pairs represented in Values
 type BenchmarkGroup struct {
-	Values  HashableMap
+	// Values are the common key/value pairs that make up this benchmark group
+	Values OrderedStringStringMap
+	// Results are a list of benchmark results for this group
 	Results BenchmarkList
 }
 
 type BenchmarkGroupList []*BenchmarkGroup
 
+// AllSingleKey returns true if all the benchmarks in this group are of a single value.  This can help us render
+// [name=bob] as just bob in the UI
 func (b BenchmarkGroupList) AllSingleKey() bool {
 	if len(b) <= 1 {
 		return true
@@ -31,6 +37,8 @@ func (b BenchmarkGroupList) AllSingleKey() bool {
 	return true
 }
 
+// Normalize removes all values that are the same in each BenchmarkGroup.  For example, if all benchmarks have the
+// value os=darwin, then we remove os=darwin from the BenchmarkGroup's Values map.
 func (b BenchmarkGroupList) Normalize() {
 	if len(b) == 0 {
 		return
@@ -60,6 +68,8 @@ func (b *BenchmarkGroup) String() string {
 	return fmt.Sprintf("vals=%v len_results=%d", b.Values, len(b.Results))
 }
 
+// NominalLineName returns how we should render this BenchmarkGroup's name in the UI.  If they are all a single key
+// then we just return the first value.  Otherwise, return [key1=value1,key2=value2,...]
 func (b *BenchmarkGroup) NominalLineName(singleKey bool) string {
 	if singleKey && len(b.Values.Order) > 0 {
 		return b.Values.Values[b.Values.Order[0]]
@@ -74,12 +84,18 @@ func (b *BenchmarkGroup) NominalLineName(singleKey bool) string {
 	return "[" + strings.Join(ret, ",") + "]"
 }
 
-func (b *BenchmarkGroup) ValuesByX(xDim string, unit string, allValues StringSet) [][]float64 {
+
+// ValuesByX returns all values in this group for a given x, ordered by all possible x values.  For example,
+// if xDim='name', then allValues will contain all the values for xDim='name' and in the order we want to render
+// them.  So if there are two names, Jack and John, then allValues=[Jack,John].  Unit is the benchmark value's unit
+// that we search for and return (unit is the Y dimension drawn). If a benchmark group has no values for, then an empty
+// array is returned for that index.  In other words, len(return_value) == len(alLValues)
+func (b *BenchmarkGroup) ValuesByX(xDim string, unit string, allValues OrderedStringSet) [][]float64 {
 	ret := make([][]float64, 0, len(allValues.Order))
 	for _, v := range allValues.Order {
 		allVals := make([]float64, 0, len(b.Results))
 		for _, b := range b.Results {
-			benchmarkKeys := MakeKeys(b)
+			benchmarkKeys := makeKeys(b)
 			if benchmarkKeys.Values[xDim] != v {
 				continue
 			}
