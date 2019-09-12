@@ -1,15 +1,16 @@
 package internal
 
 import (
-	"github.com/cep21/benchparse"
 	"strings"
+
+	"github.com/cep21/benchparse"
 )
 
 // Filter understands how to filter a benchmark result set
 type Filter struct {
 }
 
-// FilterPair controls how to filter.  It means filter only key=value.  If value is empty, then filters for existance.
+// FilterPair controls how to filter.  It means filter only key=value.  If value is empty, then filters for existence.
 type FilterPair struct {
 	Key   string
 	Value string

@@ -84,7 +84,6 @@ func (b *BenchmarkGroup) NominalLineName(singleKey bool) string {
 	return "[" + strings.Join(ret, ",") + "]"
 }
 
-
 // ValuesByX returns all values in this group for a given x, ordered by all possible x values.  For example,
 // if xDim='name', then allValues will contain all the values for xDim='name' and in the order we want to render
 // them.  So if there are two names, Jack and John, then allValues=[Jack,John].  Unit is the benchmark value's unit
