@@ -1,9 +1,9 @@
 version: 2.1
 jobs:
-  build_1_12:
+  build_1_13:
     docker:
       # Find these on https://hub.docker.com/r/circleci/golang/
-      - image: circleci/golang:1.12.9
+      - image: circleci/golang:1.13.0
     steps:
       - checkout
       # This step caches your modules directory.  Find out more about how to cache modules from
@@ -19,6 +19,7 @@ jobs:
       - run: make build test
       - run: make setup_ci lint
       - run: make draw_examples
+      - run: make test_coverage
       - run: make codecov_coverage
       - save_cache:
           key: go-mod-v1-sum-{{ checksum "go.sum" }}
@@ -28,4 +29,4 @@ workflows:
   version: 2
   build:
     jobs:
-      - build_1_12
+      - build_1_13

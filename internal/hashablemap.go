@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-type HashableMap struct {
+// OrderedStringStringMap is a map that maintins insert order
+type OrderedStringStringMap struct {
 	Values map[string]string
 	Order  []string
 }
@@ -23,16 +24,19 @@ func mustNotError(err error) {
 	}
 }
 
-func (h *HashableMap) String() string {
+// String pretty prints Values
+func (h *OrderedStringStringMap) String() string {
 	return fmt.Sprintf("%v", h.Values)
 }
 
-func (h *HashableMap) Contains(k string, v string) bool {
+// Contains returns true if this value == this key and this key exists.  Useful if v can be empty
+func (h *OrderedStringStringMap) Contains(k string, v string) bool {
 	current, exists := h.Values[k]
 	return exists && current == v
 }
 
-func (h *HashableMap) Insert(k string, v string) {
+// Insert a value into the map
+func (h *OrderedStringStringMap) Insert(k string, v string) {
 	if _, exists := h.Values[k]; exists {
 		h.Remove(k)
 	}
@@ -43,7 +47,8 @@ func (h *HashableMap) Insert(k string, v string) {
 	h.Order = append(h.Order, k)
 }
 
-func (h *HashableMap) Remove(k string) {
+// Remove a value from the map
+func (h *OrderedStringStringMap) Remove(k string) {
 	if h.Values == nil {
 		return
 	}
@@ -56,7 +61,8 @@ func (h *HashableMap) Remove(k string) {
 	}
 }
 
-func (h *HashableMap) Hash() string {
+// Hash the contents of Values, ignoring order
+func (h *OrderedStringStringMap) Hash() string {
 	type kv struct {
 		k string
 		v string

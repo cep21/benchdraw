@@ -1,16 +1,19 @@
 package internal
 
-type StringSet struct {
+// OrderedStringSet is a set of strings that remembers the order they are inserted in
+type OrderedStringSet struct {
 	Items map[string]struct{}
 	Order []string
 }
 
-func (s *StringSet) Contains(k string) bool {
+// Contains returns true if the set contains a string
+func (s *OrderedStringSet) Contains(k string) bool {
 	_, exists := s.Items[k]
 	return exists
 }
 
-func (s *StringSet) Add(k string) {
+// Add a value to the set and append the key to Order.  Does nothing if the set already contains the key.
+func (s *OrderedStringSet) Add(k string) {
 	if s.Contains(k) {
 		return
 	}

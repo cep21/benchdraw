@@ -7,9 +7,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+// BenchmarkReader reads a benchmark run from an io stream.
 type BenchmarkReader struct {
 }
 
+// ReadBenchmarks returns the correct run from this reader.
 func (a *BenchmarkReader) ReadBenchmarks(in io.Reader) (*benchparse.Run, error) {
 	d := benchparse.Decoder{}
 	run, err := d.Decode(in)
