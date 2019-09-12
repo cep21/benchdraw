@@ -19,6 +19,7 @@ jobs:
       - run: make build test
       - run: make setup_ci lint
       - run: make draw_examples
+      - run: make test_coverage
       - run: make codecov_coverage
       - save_cache:
           key: go-mod-v1-sum-{{ checksum "go.sum" }}
