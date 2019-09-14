@@ -14,69 +14,19 @@ type BenchmarkGroup struct {
 	Results BenchmarkList
 }
 
-type BenchmarkGroupList []*BenchmarkGroup
-
-// AllSingleKey returns true if all the benchmarks in this group are of a single value.  This can help us render
-// [name=bob] as just bob in the UI
-func (b BenchmarkGroupList) AllSingleKey() bool {
-	if len(b) <= 1 {
-		return true
-	}
-	if len(b[0].Values.Order) > 1 {
-		return false
-	}
-	expectedKey := b[0].Values.Order[0]
-	for i := 1; i < len(b); i++ {
-		if len(b[i].Values.Order) > 1 {
-			return false
-		}
-		if b[0].Values.Order[0] != expectedKey {
-			return false
-		}
-	}
-	return true
-}
-
-// Normalize removes all values that are the same in each BenchmarkGroup.  For example, if all benchmarks have the
-// value os=darwin, then we remove os=darwin from the BenchmarkGroup's Values map.
-func (b BenchmarkGroupList) Normalize() {
-	if len(b) == 0 {
-		return
-	}
-	keysToRemove := make([]string, 0, len(b[0].Values.Values))
-	for k, v := range b[0].Values.Values {
-		canRemoveValue := true
-	checkRestLoop:
-		for i := 1; i < len(b); i++ {
-			if !b[i].Values.Contains(k, v) {
-				canRemoveValue = false
-				break checkRestLoop
-			}
-		}
-		if canRemoveValue {
-			keysToRemove = append(keysToRemove, k)
-		}
-	}
-	for _, k := range keysToRemove {
-		for _, i := range b {
-			i.Values.Remove(k)
-		}
-	}
-}
-
 func (b *BenchmarkGroup) String() string {
 	return fmt.Sprintf("vals=%v len_results=%d", b.Values, len(b.Results))
 }
 
 // NominalLineName returns how we should render this BenchmarkGroup's name in the UI.  If they are all a single key
 // then we just return the first value.  Otherwise, return [key1=value1,key2=value2,...]
-func (b *BenchmarkGroup) NominalLineName(singleKey bool) string {
-	if singleKey && len(b.Values.Order) > 0 {
-		return b.Values.Values[b.Values.Order[0]]
+func NominalLineName(values OrderedStringStringMap, singleKey bool) string {
+	if singleKey && len(values.Order) > 0 {
+		return values.Values[values.Order[0]]
 	}
-	ret := make([]string, 0, len(b.Values.Order))
-	for _, c := range b.Values.Order {
-		ret = append(ret, c+"="+b.Values.Values[c])
+	ret := make([]string, 0, len(values.Order))
+	for _, c := range values.Order {
+		ret = append(ret, c+"="+values.Values[c])
 	}
 	if len(ret) == 0 {
 		return ""
