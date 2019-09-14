@@ -16,6 +16,13 @@ func mustParse(s string) *benchparse.Run {
 	return ret
 }
 
+func mustBenchmarkGroup(s string, vals ...string) BenchmarkGroup {
+	return BenchmarkGroup{
+		Values:  makeMap(vals...),
+		Results: mustParse(s).Results,
+	}
+}
+
 const run1 = `
 go test -v -benchmem -run=^$ -bench=. ./...
 goos: linux
@@ -37,6 +44,14 @@ BenchmarkTest/name=bob/type=digest 1 10 ns/op
 BenchmarkTest/name=john 1 20 ns/op
 type: sign
 BenchmarkTest 1 30 ns/op
+`
+
+const run3 = `
+go test -v -benchmem -run=^$ -bench=. ./...
+BenchmarkTest/name=bob/type=digest 1 10 ns/op
+BenchmarkTest/name=john 1 20 ns/op
+BenchmarkTest 1 30 ns/op
+BenchmarkTest/name=bob 1 40 ns/op
 `
 
 func makeMap(vals ...string) OrderedStringStringMap {
@@ -64,4 +79,18 @@ func TestBenchmarkList_UniqueValuesForKey(t *testing.T) {
 	require.Equal(t, makeSet("unused"), b2.UniqueValuesForKey("unused"))
 	require.Equal(t, makeSet("unused"), b2.UniqueValuesForKey("unused"))
 	require.Equal(t, makeSet("digest", "sign"), b2.UniqueValuesForKey("type"))
+}
+
+func TestBenchmarkList_ValuesByX(t *testing.T) {
+	bl := BenchmarkList(mustParse(run2).Results)
+	require.Equal(t, [][]float64{
+		{10},
+		{20, 30}, // The second value is from the name:john at the top
+	}, bl.ValuesByX("name", "ns/op", makeSet("bob", "john")))
+	b2 := BenchmarkList(mustParse(run3).Results)
+	require.Equal(t, [][]float64{
+		{10, 40},
+		{20},
+		{},
+	}, b2.ValuesByX("name", "ns/op", makeSet("bob", "john", "jane")))
 }
