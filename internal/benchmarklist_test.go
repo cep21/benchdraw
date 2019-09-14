@@ -16,13 +16,6 @@ func mustParse(s string) *benchparse.Run {
 	return ret
 }
 
-func mustBenchmarkGroup(s string, vals ...string) BenchmarkGroup {
-	return BenchmarkGroup{
-		Values:  makeMap(vals...),
-		Results: mustParse(s).Results,
-	}
-}
-
 const run1 = `
 go test -v -benchmem -run=^$ -bench=. ./...
 goos: linux
