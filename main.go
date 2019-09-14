@@ -170,7 +170,7 @@ func (a *Application) run() error {
 	plotLines := make([]internal.PlotLine, 0, len(grouped))
 	for _, g := range grouped {
 		// For this line in our graph, compute the X Values
-		allVals := g.ValuesByX(pcfg.x, pcfg.y, uniqueKeys)
+		allVals := g.Results.ValuesByX(pcfg.x, pcfg.y, uniqueKeys)
 		pl := internal.PlotLine{
 			Name:   internal.NominalLineName(g.Values, grouped.AllSingleKey()),
 			Values: allVals,

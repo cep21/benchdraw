@@ -33,26 +33,3 @@ func NominalLineName(values OrderedStringStringMap, singleKey bool) string {
 	}
 	return "[" + strings.Join(ret, ",") + "]"
 }
-
-// ValuesByX returns all values in this group for a given x, ordered by all possible x values.  For example,
-// if xDim='name', then allValues will contain all the values for xDim='name' and in the order we want to render
-// them.  So if there are two names, Jack and John, then allValues=[Jack,John].  Unit is the benchmark value's unit
-// that we search for and return (unit is the Y dimension drawn). If a benchmark group has no values for, then an empty
-// array is returned for that index.  In other words, len(return_value) == len(alLValues)
-func (b *BenchmarkGroup) ValuesByX(xDim string, unit string, allValues OrderedStringSet) [][]float64 {
-	ret := make([][]float64, 0, len(allValues.Order))
-	for _, v := range allValues.Order {
-		allVals := make([]float64, 0, len(b.Results))
-		for _, b := range b.Results {
-			benchmarkKeys := makeKeys(b)
-			if benchmarkKeys.Values[xDim] != v {
-				continue
-			}
-			if val, exists := b.ValueByUnit(unit); exists {
-				allVals = append(allVals, val)
-			}
-		}
-		ret = append(ret, allVals)
-	}
-	return ret
-}
