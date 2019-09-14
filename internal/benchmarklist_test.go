@@ -1,10 +1,11 @@
 package internal
 
 import (
-	"github.com/cep21/benchparse"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+
+	"github.com/cep21/benchparse"
+	"github.com/stretchr/testify/require"
 )
 
 func mustParse(s string) *benchparse.Run {
@@ -28,7 +29,6 @@ BenchmarkTdigest_Add/source=rand/digest=caio-8                	 4080662	       3
 BenchmarkTdigest_Add/source=rand/digest=segmentio-8           	 2220681	       785 ns/op	       8 B/op	       1 allocs/op
 `
 
-
 const run2 = `
 go test -v -benchmem -run=^$ -bench=. ./...
 name: john
@@ -39,10 +39,9 @@ type: sign
 BenchmarkTest 1 30 ns/op
 `
 
-
 func makeMap(vals ...string) OrderedStringStringMap {
 	var ret OrderedStringStringMap
-	for i :=0;i<len(vals);i+=2 {
+	for i := 0; i < len(vals); i += 2 {
 		ret.Insert(vals[i], vals[i+1])
 	}
 	return ret
@@ -58,7 +57,7 @@ func makeSet(vals ...string) OrderedStringSet {
 
 func TestBenchmarkList_UniqueValuesForKey(t *testing.T) {
 	bl := BenchmarkList(mustParse(run1).Results)
-	require.Equal(t, makeSet("caio","segmentio"), bl.UniqueValuesForKey("digest"))
+	require.Equal(t, makeSet("caio", "segmentio"), bl.UniqueValuesForKey("digest"))
 	require.Equal(t, makeSet(), bl.UniqueValuesForKey("bob"))
 	b2 := BenchmarkList(mustParse(run2).Results)
 	require.Equal(t, makeSet("bob", "john"), b2.UniqueValuesForKey("name"))

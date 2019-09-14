@@ -172,7 +172,7 @@ func (a *Application) run() error {
 		// For this line in our graph, compute the X Values
 		allVals := g.ValuesByX(pcfg.x, pcfg.y, uniqueKeys)
 		pl := internal.PlotLine{
-			Name:   g.NominalLineName(grouped.AllSingleKey()),
+			Name:   internal.NominalLineName(g.Values, grouped.AllSingleKey()),
 			Values: allVals,
 		}
 		a.log.Log(3, "nominal=%v plot=%v", pl.Name, pl)

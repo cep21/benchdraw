@@ -16,8 +16,10 @@ go get github.com/cep21/benchdraw
 
 # Usage
 
-First generate some benchmark data by running your benchmarks and sending them to a file.
-```
+First generate some benchmark data by running your benchmarks and sending them to a file.  Here is what my makefile
+looks like:
+```Makefile
+bench:
     go test -v -benchmem -run=^$$ -bench=. ./... > benchmark.txt
 ```
 Then, run `benchdraw` against benchmark.txt to create pictures.  `benchdraw` expects that you name your benchmarks as
