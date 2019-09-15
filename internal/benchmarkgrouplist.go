@@ -1,5 +1,7 @@
 package internal
 
+import "strings"
+
 type BenchmarkGroupList []*BenchmarkGroup
 
 // AllSingleKey returns true if all the benchmarks in this group are of a single value.  This can help us render
@@ -16,11 +18,19 @@ func (b BenchmarkGroupList) AllSingleKey() bool {
 		if len(b[i].Values.Order) > 1 {
 			return false
 		}
-		if b[0].Values.Order[0] != expectedKey {
+		if b[i].Values.Order[0] != expectedKey {
 			return false
 		}
 	}
 	return true
+}
+
+func (b BenchmarkGroupList) String() string {
+	ret := make([]string, 0, len(b))
+	for _, i := range b {
+		ret = append(ret, i.String())
+	}
+	return "[" + strings.Join(ret, ",") + "]"
 }
 
 // Normalize removes all values that are the same in each BenchmarkGroup.  For example, if all benchmarks have the
