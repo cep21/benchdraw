@@ -47,6 +47,14 @@ BenchmarkTest 1 30 ns/op
 BenchmarkTest/name=bob 1 40 ns/op
 `
 
+const run4 = `
+go test -v -benchmem -run=^$ -bench=. ./...
+BenchmarkTest/name=bob/type=digest 1 10 ns/op 5 allocs/op
+BenchmarkTest/name=john 1 20 ns/op
+BenchmarkTest 1 30 ns/op
+BenchmarkTest/name=bob 1 40 ns/op
+`
+
 func makeMap(vals ...string) OrderedStringStringMap {
 	var ret OrderedStringStringMap
 	for i := 0; i < len(vals); i += 2 {
