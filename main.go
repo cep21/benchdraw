@@ -162,7 +162,7 @@ func (a *Application) run() error {
 	}
 	// Each group is a line in our graph
 	a.log.Log(3, "groupSet: %v", groupSet)
-	grouped := a.grouper.GroupBenchmarks(filteredResults, groupSet, pcfg.x)
+	grouped := a.grouper.GroupBenchmarks(filteredResults, groupSet)
 	a.log.Log(3, "grouped: %v", grouped)
 	grouped.Normalize()
 	a.log.Log(3, "normalize: %v", grouped)
