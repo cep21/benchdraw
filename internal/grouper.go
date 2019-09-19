@@ -11,16 +11,9 @@ func (g *Grouper) GroupBenchmarks(in BenchmarkList, groups OrderedStringSet) Ben
 	for _, b := range in {
 		keysMap := makeKeys(b)
 		var hm OrderedStringStringMap
-		if len(groups.Order) == 0 {
-			// Group by everything except unit
-			for _, k := range keysMap.Order {
-				hm.Insert(k, keysMap.Values[k])
-			}
-		} else {
-			for _, ck := range groups.Order {
-				if configValue, exists := keysMap.Values[ck]; exists {
-					hm.Insert(ck, configValue)
-				}
+		for _, ck := range groups.Order {
+			if configValue, exists := keysMap.Values[ck]; exists {
+				hm.Insert(ck, configValue)
 			}
 		}
 		mapHash := hm.Hash()
