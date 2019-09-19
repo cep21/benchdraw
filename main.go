@@ -160,11 +160,13 @@ func (a *Application) run() error {
 	for _, g := range pcfg.group {
 		groupSet.Add(g)
 	}
-	// When grouping by nothing, default to grouping by everything but the unit.
+	// When grouping by nothing, default to grouping by everything but the x axis.
 	if len(groupSet.Items) == 0 {
 		for _, r := range filteredResults {
 			for k := range r.AllKeyValuePairs().Contents {
-				groupSet.Add(k)
+				if k != pcfg.x {
+					groupSet.Add(k)
+				}
 			}
 		}
 	}
