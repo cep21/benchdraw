@@ -163,7 +163,7 @@ func (a *Application) run() error {
 	// When grouping by nothing, default to grouping by everything but the unit.
 	if len(groupSet.Items) == 0 {
 		for _, r := range filteredResults {
-			for k  := range r.AllKeyValuePairs().Contents {
+			for k := range r.AllKeyValuePairs().Contents {
 				groupSet.Add(k)
 			}
 		}
