@@ -51,21 +51,21 @@
 <path d="M800,30.23L800,399.58L830,399.58L830,30.23Z" style="fill:#CE7058" />
 <path d="M810,387.81L810,399.58L830,399.58L830,387.81Z" style="fill:#F15A60" />
 <text x="701.82" y="-388.03" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[text=digits,size=1e4]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[size=1e4,text=digits]</text>
 <path d="M810,376.03L810,387.81L830,387.81L830,376.03Z" style="fill:#7AC36A" />
 <text x="701.82" y="-376.25" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[text=digits,size=1e5]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[size=1e5,text=digits]</text>
 <path d="M810,364.25L810,376.03L830,376.03L830,364.25Z" style="fill:#5A9BD4" />
 <text x="701.82" y="-364.47" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[text=digits,size=1e6]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[size=1e6,text=digits]</text>
 <path d="M810,352.47L810,364.25L830,364.25L830,352.47Z" style="fill:#FAA75B" />
 <text x="701.84" y="-352.7" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[text=twain,size=1e4]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[size=1e4,text=twain]</text>
 <path d="M810,340.7L810,352.47L830,352.47L830,340.7Z" style="fill:#9E67AB" />
 <text x="701.84" y="-340.92" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[text=twain,size=1e5]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[size=1e5,text=twain]</text>
 <path d="M810,328.92L810,340.7L830,340.7L830,328.92Z" style="fill:#CE7058" />
 <text x="701.84" y="-329.14" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[text=twain,size=1e6]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[size=1e6,text=twain]</text>
 </g>
 </svg>

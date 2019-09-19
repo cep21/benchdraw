@@ -52,34 +52,34 @@
 <path d="M53.048,30.23L483.05,30.23L913.05,30.23L1343.1,30.23L1773.1,874.68" style="fill:none;stroke:#7AC36A" />
 <path d="M53.048,30.23L483.05,30.23L913.05,30.23L1343.1,30.23L1773.1,874.68" style="fill:none;stroke:#5A9BD4" />
 <path d="M1770,873.7L1790,873.7" style="fill:none;stroke:#F15A60" />
-<text x="1635.7" y="-868.03" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=linear,digest=caio]</text>
+<text x="1635.2" y="-868.03" transform="scale(1, -1)"
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=caio,source=linear]</text>
 <path d="M1770,861.92L1790,861.92" style="fill:none;stroke:#7AC36A" />
-<text x="1606.3" y="-856.25" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=linear,digest=segmentio]</text>
+<text x="1605.8" y="-856.25" transform="scale(1, -1)"
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=segmentio,source=linear]</text>
 <path d="M1770,850.14L1790,850.14" style="fill:none;stroke:#5A9BD4" />
 <text x="1641.2" y="-844.47" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=rand,digest=caio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=caio,source=rand]</text>
 <path d="M1770,838.36L1790,838.36" style="fill:none;stroke:#FAA75B" />
 <text x="1611.8" y="-832.7" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=rand,digest=segmentio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=segmentio,source=rand]</text>
 <path d="M1770,826.59L1790,826.59" style="fill:none;stroke:#9E67AB" />
 <text x="1611.2" y="-820.92" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=alternating,digest=caio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=caio,source=alternating]</text>
 <path d="M1770,814.81L1790,814.81" style="fill:none;stroke:#CE7058" />
 <text x="1581.9" y="-809.14" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=alternating,digest=segmentio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=segmentio,source=alternating]</text>
 <path d="M1770,803.03L1790,803.03" style="fill:none;stroke:#D77FB4" />
 <text x="1628.5" y="-797.37" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=normal,digest=caio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=caio,source=normal]</text>
 <path d="M1770,791.25L1790,791.25" style="fill:none;stroke:#F15A60" />
 <text x="1599.2" y="-785.59" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=normal,digest=segmentio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=segmentio,source=normal]</text>
 <path d="M1770,779.48L1790,779.48" style="fill:none;stroke:#7AC36A" />
 <text x="1621.8" y="-773.81" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=tailspike,digest=caio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=caio,source=tailspike]</text>
 <path d="M1770,767.7L1790,767.7" style="fill:none;stroke:#5A9BD4" />
 <text x="1592.5" y="-762.03" transform="scale(1, -1)"
-	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[source=tailspike,digest=segmentio]</text>
+	style="font-family:Times;font-weight:normal;font-style:normal;font-size:12px">[digest=segmentio,source=tailspike]</text>
 </g>
 </svg>
