@@ -160,9 +160,19 @@ func (a *Application) run() error {
 	for _, g := range pcfg.group {
 		groupSet.Add(g)
 	}
+	// When grouping by nothing, default to grouping by everything but the x axis.
+	if len(groupSet.Items) == 0 {
+		for _, r := range filteredResults {
+			for k := range r.AllKeyValuePairs().Contents {
+				if k != pcfg.x {
+					groupSet.Add(k)
+				}
+			}
+		}
+	}
 	// Each group is a line in our graph
 	a.log.Log(3, "groupSet: %v", groupSet)
-	grouped := a.grouper.GroupBenchmarks(filteredResults, groupSet, pcfg.x)
+	grouped := a.grouper.GroupBenchmarks(filteredResults, groupSet)
 	a.log.Log(3, "grouped: %v", grouped)
 	grouped.Normalize()
 	a.log.Log(3, "normalize: %v", grouped)

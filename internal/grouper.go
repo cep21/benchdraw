@@ -5,7 +5,7 @@ type Grouper struct {
 }
 
 // GroupBenchmarks will return for each returned BenchmarkGroup will aggregate Results by unique groups Key/Value pairs
-func (g *Grouper) GroupBenchmarks(in BenchmarkList, groups OrderedStringSet, unit string) BenchmarkGroupList {
+func (g *Grouper) GroupBenchmarks(in BenchmarkList, groups OrderedStringSet) BenchmarkGroupList {
 	ret := make(BenchmarkGroupList, 0, len(in))
 	setMap := make(map[string]*BenchmarkGroup)
 	for _, b := range in {
@@ -14,9 +14,7 @@ func (g *Grouper) GroupBenchmarks(in BenchmarkList, groups OrderedStringSet, uni
 		if len(groups.Order) == 0 {
 			// Group by everything except unit
 			for _, k := range keysMap.Order {
-				if k != unit {
-					hm.Insert(k, keysMap.Values[k])
-				}
+				hm.Insert(k, keysMap.Values[k])
 			}
 		} else {
 			for _, ck := range groups.Order {
