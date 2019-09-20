@@ -23,6 +23,8 @@ type Application struct {
 	parameters  []string
 	log         internal.Logger
 	osExit      func(int)
+	stdIn io.Reader
+	stdOut io.Writer
 }
 
 type config struct {
@@ -47,7 +49,7 @@ func filterEmpty(s []string) []string {
 	return ret
 }
 
-func (c config) parse() (*parsedConfig, error) {
+func (c config) parse(stdin io.Reader, stdout io.Writer) (*parsedConfig, error) {
 	ret := parsedConfig{
 		title:       c.title,
 		filters:     internal.ToFilterPairs(c.filter),
@@ -65,7 +67,7 @@ func (c config) parse() (*parsedConfig, error) {
 	}
 	ret.plot = pt
 	if c.input == "-" || c.input == "" {
-		ret.input = os.Stdin
+		ret.input = stdin
 	} else {
 		f, err := os.Open(c.input)
 		if err != nil {
@@ -75,7 +77,7 @@ func (c config) parse() (*parsedConfig, error) {
 		ret.onClose = append(ret.onClose, f.Close)
 	}
 	if c.output == "-" || c.output == "" {
-		ret.output = os.Stdout
+		ret.output = stdout
 	} else {
 		f, err := os.Create(c.output)
 		if err != nil {
@@ -121,6 +123,8 @@ var mainInstance = &Application{
 		Logger: log.New(os.Stderr, "benchdraw", log.LstdFlags),
 	},
 	osExit: os.Exit,
+	stdIn: os.Stdin,
+	stdOut: os.Stdout,
 }
 
 func (a *Application) main() {
@@ -136,7 +140,7 @@ func (a *Application) run() error {
 		return errors.Wrap(err, "unable to setup flags")
 	}
 	a.log.Log(1, "application startup")
-	pcfg, err := a.config.parse()
+	pcfg, err := a.config.parse(a.stdIn, a.stdOut)
 	a.log.Log(1, "finished config parsing")
 	if err != nil {
 		return errors.Wrap(err, "unable to parse config")
