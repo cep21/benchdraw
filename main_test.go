@@ -29,7 +29,7 @@ func TestTestData(t *testing.T) {
 				osExit: func(i int) {
 					require.Equal(t, 0, i)
 				},
-				stdIn: strings.NewReader(mustRead(t, inputFile)),
+				stdIn:  strings.NewReader(mustRead(t, inputFile)),
 				stdOut: buf,
 			}
 			instance.main()

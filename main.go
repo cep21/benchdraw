@@ -23,8 +23,8 @@ type Application struct {
 	parameters  []string
 	log         internal.Logger
 	osExit      func(int)
-	stdIn io.Reader
-	stdOut io.Writer
+	stdIn       io.Reader
+	stdOut      io.Writer
 }
 
 type config struct {
@@ -123,7 +123,7 @@ var mainInstance = &Application{
 		Logger: log.New(os.Stderr, "benchdraw", log.LstdFlags),
 	},
 	osExit: os.Exit,
-	stdIn: os.Stdin,
+	stdIn:  os.Stdin,
 	stdOut: os.Stdout,
 }
 
