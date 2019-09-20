@@ -2,13 +2,14 @@ package main
 
 import (
 	"bytes"
-	"github.com/cep21/benchdraw/internal"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/cep21/benchdraw/internal"
+	"github.com/stretchr/testify/require"
 )
 
 func mustRead(t *testing.T, file string) string {
