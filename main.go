@@ -167,7 +167,7 @@ func (a *Application) run() error {
 	// When grouping by nothing, default to grouping by everything but the x axis.
 	if len(groupSet.Items) == 0 {
 		for _, r := range filteredResults {
-			for k := range r.AllKeyValuePairs().Contents {
+			for _, k := range r.AllKeyValuePairs().Order {
 				if k != pcfg.x {
 					groupSet.Add(k)
 				}
